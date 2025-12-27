@@ -68,7 +68,7 @@ fn main() {
             let unit_combo = unit_combo.clone();
             let result_label = result_label.clone();
             let drawing_area = drawing_area.clone();
-            let config = config::Config::load();
+            let square_color = config.colors.square.clone(); // Klone die Farbe hier
 
             move |_| {
                 let input = input_entry.text().parse::<f64>().unwrap_or(0.0);
@@ -86,12 +86,13 @@ fn main() {
 
                 // Zeichne das Pixel-Quadrat
                 drawing_area.queue_draw();
+                let square_color_clone = square_color.clone(); // Klone für den Draw-Handler
                 drawing_area.connect_draw(move |_, cr| {
-                    let square_color = RGBA::parse(&config.colors.square).unwrap();
+                    let square_rgba = RGBA::parse(&square_color_clone).unwrap();
                     cr.set_source_rgba(
-                        square_color.red() as f64 / 255.0,
-                        square_color.green() as f64 / 255.0,
-                        square_color.blue() as f64 / 255.0,
+                        square_rgba.red() as f64,
+                        square_rgba.green() as f64,
+                        square_rgba.blue() as f64,
                         1.0,
                     );
                     cr.rectangle(10.0, 10.0, px, px);
@@ -132,8 +133,11 @@ fn main() {
         // Logik für Einstellungen-Knopf
         settings_button.connect_clicked({
             let window = window.clone();
+            let config_toolbar_pos = config.ui.toolbar_position.clone(); // Klone für späteren Gebrauch
 
             move |_| {
+                let current_config = config::Config::load(); // Lade Config neu im Closure
+                
                 let settings_window = ApplicationWindow::builder()
                     .title("DuckPx Einstellungen")
                     .transient_for(&window)
@@ -145,7 +149,7 @@ fn main() {
                 let toolbar_pos_combo = ComboBoxText::new();
                 toolbar_pos_combo.append_text("Oben");
                 toolbar_pos_combo.append_text("Unten");
-                toolbar_pos_combo.set_active(match config.ui.toolbar_position.as_str() {
+                toolbar_pos_combo.set_active(match current_config.ui.toolbar_position.as_str() {
                     "top" => Some(0),
                     "bottom" => Some(1),
                     _ => Some(0),
@@ -154,13 +158,13 @@ fn main() {
                 // Farbauswahl (Hintergrund)
                 let bg_color_label = Label::new(Some("Hintergrundfarbe (Hex, z. B. #FFFFFF):"));
                 let bg_color_entry = Entry::builder()
-                    .text(&config.colors.background)
+                    .text(&current_config.colors.background)
                     .build();
 
                 // Farbauswahl (Quadrat)
                 let square_color_label = Label::new(Some("Quadratfarbe (Hex, z. B. #FFA500):"));
                 let square_color_entry = Entry::builder()
-                    .text(&config.colors.square)
+                    .text(&current_config.colors.square)
                     .build();
 
                 // Speichern-Knopf
