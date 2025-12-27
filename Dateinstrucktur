@@ -1,0 +1,12 @@
+duckpx/
+├── Cargo.toml
+├── src/
+│   ├── main.rs
+│   ├── config.rs
+│   └── dpi.rs
+├── config.toml
+├── install.sh
+├── duckpx.desktop
+├── icon.png          # Base64-Icon (kann auch als Datei hinzugefügt werden)
+├── README.md
+└── LICENSE
