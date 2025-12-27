@@ -45,8 +45,8 @@ fn main() {
 
         // Konfiguration laden
         let config = config::load_config();
-        let bg_color = gdk::Color::parse(&config.background_color).unwrap();
-        let fg_color = gdk::Color::parse(&config.foreground_color).unwrap();
+        let bg_color = gtk::Color::parse(&config.background_color).unwrap();
+        let fg_color = gtk::Color::parse(&config.foreground_color).unwrap();
 
         // Button-Logik
         button.connect_clicked({
