@@ -28,14 +28,13 @@ sudo mkdir -p /usr/local/share/duckpx/src
 mkdir -p ~/.config/duckpx
 
 #holen der Datein von Github
-wget -O /usr/local/share/duckpx/start.sh https://raw.githubusercontent.com/Change-Goose-Open-Surce-Software/duckpx/main/start.sh
 wget -O /usr/local/share/duckpx/src/main.rs https://raw.githubusercontent.com/Change-Goose-Open-Surce-Software/duckpx/main/main.rs
 wget -O /usr/local/share/duckpx/Cargo.toml https://raw.githubusercontent.com/Change-Goose-Open-Surce-Software/duckpx/main/Cargo.toml
 wget -O /usr/local/share/duckpx/src/config.rs https://raw.githubusercontent.com/Change-Goose-Open-Surce-Software/duckpx/main/config.rs
 wget -O /usr/local/share/duckpx/src/dpi.rs https://raw.githubusercontent.com/Change-Goose-Open-Surce-Software/duckpx/main/dpi.rs
 wget -O ~/.config/duckpx/config.toml https://raw.githubusercontent.com/Change-Goose-Open-Surce-Software/duckpx/main/config.toml
 wget -O /usr/share/applications/duckpx.desktop https://raw.githubusercontent.com/Change-Goose-Open-Surce-Software/duckpx/main/duckpx.desktop
-wget -O /usr/local/share/duckpx/update.sh https://raw.githubusercontent.com/Change-Goose-Open-Surce-Software/duckpx/install.sh
+wget -O /usr/local/share/duckpx/update.sh https://raw.githubusercontent.com/Change-Goose-Open-Surce-Software/duckpx/main/install.sh
 
 #Funktionalitätder .desktop datei sicherstellen
 sudo update-desktop-database
@@ -49,7 +48,6 @@ cargo build --release || { echo "❌ Build fehlgeschlagen! Prüfe Cargo.toml."; 
 sudo cp target/release/duckpx /usr/local/bin/ || { echo "❌ Kopieren fehlgeschlagen!"; exit 1; }
 
 #Scripte Ausfühbar machen
-sudo chmod +x /usr/local/share/duckpx/start.sh
 sudo chmod +x /usr/local/share/duckpx/update.sh
 sudo chmod +x /usr/local/bin/duckpx
 
