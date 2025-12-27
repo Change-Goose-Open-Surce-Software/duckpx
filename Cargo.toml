@@ -1,7 +1,7 @@
 [package]
 name = "duckpx"
 version = "0.1.0"
-edition = "2025"
+edition = "2021"
 authors = ["Change Goose"]
 license = "MIT"
 description = "Ein Tool zur Anzeige von Pixel- und Millimetergrößen mit DPI-Berechnung."
