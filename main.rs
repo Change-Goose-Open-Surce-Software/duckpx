@@ -34,9 +34,8 @@ fn main() {
         // Toolbar (oben oder unten)
         let toolbar = GtkBox::new(Orientation::Horizontal, 5);
 
-        // Update-Knopf mit Statuslabel
+        // Update-Knopf
         let update_button = Button::with_label("Update");
-        let update_label = Label::new(Some("Bereit für Update..."));
 
         // GitHub-Knopf
         let github_button = Button::with_label("GitHub");
@@ -107,25 +106,27 @@ fn main() {
         });
 
         // Logik für Update-Knopf
-        update_button.connect_clicked({
-            let update_label = update_label.clone();
+        update_button.connect_clicked(move |button| {
+            button.set_label("Update läuft...");
 
-            move |_| {
-                update_label.set_text("Update läuft...");
+            let output = Command::new("sh")
+                .arg("-c")
+                .arg("/usr/local/share/duckpx/update.sh")
+                .output()
+                .expect("Update fehlgeschlagen!");
 
-                let output = Command::new("sh")
-                    .arg("-c")
-                    .arg("/usr/local/share/duckpx/update.sh")
-                    .output()
-                    .expect("Update fehlgeschlagen!");
-
-                if output.status.success() {
-                    update_label.set_text("✅ Update erfolgreich!");
-                } else {
-                    let error_msg = String::from_utf8_lossy(&output.stderr);
-                    update_label.set_text(&format!("❌ Fehler: {}", error_msg));
-                }
+            if output.status.success() {
+                button.set_label("✅ Erfolgreich!");
+            } else {
+                button.set_label("❌ Fehler!");
             }
+
+            // Nach 3 Sekunden zurücksetzen
+            let button_clone = button.clone();
+            gtk::timeout_add(3000, move || {
+                button_clone.set_label("Update");
+                Continue(false)
+            });
         });
 
         // Logik für GitHub-Knopf
@@ -144,11 +145,19 @@ fn main() {
                 let settings_window = ApplicationWindow::builder()
                     .title("DuckPx Einstellungen")
                     .transient_for(&window)
+                    .default_width(350)
+                    .default_height(300)
                     .build();
 
-                let vbox = GtkBox::new(Orientation::Vertical, 5);
+                let vbox = GtkBox::new(Orientation::Vertical, 10);
+                vbox.set_margin_start(10);
+                vbox.set_margin_end(10);
+                vbox.set_margin_top(10);
+                vbox.set_margin_bottom(10);
 
                 // Dropdown für Toolbar-Position
+                let toolbar_label = Label::new(Some("Toolbar-Position:"));
+                toolbar_label.set_halign(gtk::Align::Start);
                 let toolbar_pos_combo = ComboBoxText::new();
                 toolbar_pos_combo.append_text("Oben");
                 toolbar_pos_combo.append_text("Unten");
@@ -158,25 +167,42 @@ fn main() {
                     _ => Some(0),
                 });
 
-                // Farbauswahl (Hintergrund)
-                let bg_color_label = Label::new(Some("Hintergrundfarbe (Hex, z. B. #FFFFFF):"));
-                let bg_color_entry = Entry::builder()
-                    .text(&current_config.colors.background)
-                    .build();
+                // Farbauswahl für Hintergrund
+                let bg_color_label = Label::new(Some("Hintergrundfarbe:"));
+                bg_color_label.set_halign(gtk::Align::Start);
+                let bg_color_combo = ComboBoxText::new();
+                bg_color_combo.append(Some("#FFFFFF"), "Weiß");
+                bg_color_combo.append(Some("#000000"), "Schwarz");
+                bg_color_combo.append(Some("#F0F0F0"), "Hellgrau");
+                bg_color_combo.append(Some("#333333"), "Dunkelgrau");
+                bg_color_combo.append(Some("#E8F4F8"), "Hellblau");
+                bg_color_combo.set_active_id(Some(&current_config.colors.background));
 
-                // Farbauswahl (Quadrat)
-                let square_color_label = Label::new(Some("Quadratfarbe (Hex, z. B. #FFA500):"));
-                let square_color_entry = Entry::builder()
-                    .text(&current_config.colors.square)
-                    .build();
+                // Farbauswahl für Quadrat
+                let square_color_label = Label::new(Some("Quadratfarbe:"));
+                square_color_label.set_halign(gtk::Align::Start);
+                let square_color_combo = ComboBoxText::new();
+                square_color_combo.append(Some("#FFA500"), "Orange");
+                square_color_combo.append(Some("#FF0000"), "Rot");
+                square_color_combo.append(Some("#00FF00"), "Grün");
+                square_color_combo.append(Some("#0000FF"), "Blau");
+                square_color_combo.append(Some("#FFFF00"), "Gelb");
+                square_color_combo.append(Some("#FF00FF"), "Magenta");
+                square_color_combo.append(Some("#00FFFF"), "Cyan");
+                square_color_combo.append(Some("#800080"), "Lila");
+                square_color_combo.append(Some("#FFC0CB"), "Rosa");
+                square_color_combo.append(Some("#A52A2A"), "Braun");
+                square_color_combo.append(Some("#000000"), "Schwarz");
+                square_color_combo.append(Some("#808080"), "Grau");
+                square_color_combo.set_active_id(Some(&current_config.colors.square));
 
                 // Speichern-Knopf
                 let save_button = Button::with_label("Speichern");
                 save_button.connect_clicked({
                     let settings_window = settings_window.clone();
                     let toolbar_pos_combo = toolbar_pos_combo.clone();
-                    let bg_color_entry = bg_color_entry.clone();
-                    let square_color_entry = square_color_entry.clone();
+                    let bg_color_combo = bg_color_combo.clone();
+                    let square_color_combo = square_color_combo.clone();
 
                     move |_| {
                         let mut new_config = config::Config::load();
@@ -185,8 +211,14 @@ fn main() {
                             Some(1) => "bottom".to_string(),
                             _ => "top".to_string(),
                         };
-                        new_config.colors.background = bg_color_entry.text().to_string();
-                        new_config.colors.square = square_color_entry.text().to_string();
+                        
+                        // Hole die ausgewählten Hex-Werte
+                        if let Some(bg_hex) = bg_color_combo.active_id() {
+                            new_config.colors.background = bg_hex.to_string();
+                        }
+                        if let Some(square_hex) = square_color_combo.active_id() {
+                            new_config.colors.square = square_hex.to_string();
+                        }
 
                         // Speichere in Datei
                         let config_dir = dirs::config_dir().unwrap().join("duckpx");
@@ -198,11 +230,12 @@ fn main() {
                     }
                 });
 
+                vbox.pack_start(&toolbar_label, false, false, 0);
                 vbox.pack_start(&toolbar_pos_combo, false, false, 0);
                 vbox.pack_start(&bg_color_label, false, false, 0);
-                vbox.pack_start(&bg_color_entry, false, false, 0);
+                vbox.pack_start(&bg_color_combo, false, false, 0);
                 vbox.pack_start(&square_color_label, false, false, 0);
-                vbox.pack_start(&square_color_entry, false, false, 0);
+                vbox.pack_start(&square_color_combo, false, false, 0);
                 vbox.pack_start(&save_button, false, false, 0);
 
                 settings_window.add(&vbox);
@@ -223,16 +256,14 @@ fn main() {
                 vbox.pack_start(&unit_combo, false, false, 0);
                 vbox.pack_start(&calculate_button, false, false, 0);
                 vbox.pack_start(&result_label, false, false, 0);
-                vbox.pack_start(&drawing_area, false, false, 0);
-                vbox.pack_start(&update_label, false, false, 0);
+                vbox.pack_start(&drawing_area, true, true, 0);
             },
             "bottom" => {
                 vbox.pack_start(&input_entry, false, false, 0);
                 vbox.pack_start(&unit_combo, false, false, 0);
                 vbox.pack_start(&calculate_button, false, false, 0);
                 vbox.pack_start(&result_label, false, false, 0);
-                vbox.pack_start(&drawing_area, false, false, 0);
-                vbox.pack_start(&update_label, false, false, 0);
+                vbox.pack_start(&drawing_area, true, true, 0);
                 vbox.pack_end(&toolbar, false, false, 0);
             },
             _ => (),
