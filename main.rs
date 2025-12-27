@@ -116,17 +116,10 @@ fn main() {
                 .expect("Update fehlgeschlagen!");
 
             if output.status.success() {
-                button.set_label("✅ Erfolgreich!");
+                button.set_label("✅ Update");
             } else {
-                button.set_label("❌ Fehler!");
+                button.set_label("❌ Update");
             }
-
-            // Nach 3 Sekunden zurücksetzen
-            let button_clone = button.clone();
-            glib::timeout_add_seconds_local(3, move || {
-                button_clone.set_label("Update");
-                glib::Continue(false)
-            });
         });
 
         // Logik für GitHub-Knopf
