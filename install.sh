@@ -43,9 +43,10 @@ sudo update-desktop-database
 #Datein Komprimieren
 # Rust-Projekt bauen
 echo "🔧 Baue DuckPx mit Cargo..."
-cd /usr/local/share/duckpx  # Wechsle in das Projektverzeichnis
-cargo build --release       # Baue das Projekt im Release-Modus (optimiert)
-sudo cp target/release/duckpx /usr/local/bin/  # Kopiere die fertige Binärdatei nach /usr/local/bin/
+cd /usr/local/share/duckpx || { echo "❌ Verzeichnis nicht gefunden!"; exit 1; }
+cargo clean  # Sauberer Build (löscht alte Artefakte)
+cargo build --release || { echo "❌ Build fehlgeschlagen! Prüfe Cargo.toml."; exit 1; }
+sudo cp target/release/duckpx /usr/local/bin/ || { echo "❌ Kopieren fehlgeschlagen!"; exit 1; }
 
 #Scripte Ausfühbar machen
 sudo chmod +x /usr/local/share/duckpx/start.sh
