@@ -1,30 +1,57 @@
 use serde::{Deserialize, Serialize};
 use std::fs;
-use std::path::Path;
+use dirs;
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Colors {
+    pub background: String,
+    pub foreground: String,
+    pub square: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct UI {
+    pub toolbar_position: String,  // "top" oder "bottom"
+}
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Config {
-    pub background_color: String,
-    pub foreground_color: String,
+    pub colors: Colors,
+    pub ui: UI,
 }
 
-impl Default for Config {
-    fn default() -> Self {
-        Config {
-            background_color: "#FFFFFF".to_string(),
-            foreground_color: "#FFA500".to_string(),
+impl Config {
+    pub fn load() -> Self {
+        let config_dir = dirs::config_dir()
+            .expect("Konnte Konfigurationsverzeichnis nicht finden")
+            .join("duckpx");
+
+        let config_path = config_dir.join("config.toml");
+
+        // Erstelle Verzeichnis, falls nicht vorhanden
+        if !config_dir.exists() {
+            fs::create_dir_all(&config_dir).unwrap();
         }
-    }
-}
 
-pub fn load_config() -> Config {
-    let config_path = Path::new("config.toml");
-    if config_path.exists() {
+        // Standardkonfiguration, falls keine existiert
+        if !config_path.exists() {
+            let default_config = Config {
+                colors: Colors {
+                    background: "#FFFFFF".to_string(),
+                    foreground: "#000000".to_string(),
+                    square: "#FFA500".to_string(),
+                },
+                ui: UI {
+                    toolbar_position: "top".to_string(),
+                },
+            };
+            let toml_string = toml::to_string(&default_config).unwrap();
+            fs::write(&config_path, toml_string).unwrap();
+            return default_config;
+        }
+
+        // Lade bestehende Konfiguration
         let content = fs::read_to_string(config_path).unwrap();
-        toml::from_str(&content).unwrap_or_else(|_| Config::default())
-    } else {
-        let config = Config::default();
-        fs::write(config_path, toml::to_string(&config).unwrap()).unwrap();
-        config
+        toml::from_str(&content).unwrap()
     }
 }
