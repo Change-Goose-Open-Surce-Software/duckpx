@@ -73,7 +73,8 @@ fn main() {
 
             move |_| {
                 let input = input_entry.text().parse::<f64>().unwrap_or(0.0);
-                let unit = unit_combo.active_text().unwrap().as_str();
+                let binding = unit_combo.active_text().unwrap();  // ✅ Speichere den String
+                let unit = binding.as_str();                       // ✅ Borrowe von der Variable
 
                 let (px, mm, inch) = match unit {
                     "Pixel (px)" => (input, dpi::px_to_mm(input), dpi::px_to_inch(input)),
@@ -85,6 +86,7 @@ fn main() {
                 result_label.set_text(&format!("{}px = {:.2}mm = {:.2}in", px, mm, inch));
             }
         });
+
 
         // Toolbar aufbauen
         toolbar.pack_start(&update_button, false, false, 0);
