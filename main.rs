@@ -123,9 +123,9 @@ fn main() {
 
             // Nach 3 Sekunden zurücksetzen
             let button_clone = button.clone();
-            gtk::timeout_add(3000, move || {
+            glib::timeout_add_seconds_local(3, move || {
                 button_clone.set_label("Update");
-                Continue(false)
+                glib::Continue(false)
             });
         });
 
