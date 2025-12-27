@@ -15,6 +15,10 @@ fn main() {
     app.connect_activate(|app| {
         // Lade Konfiguration
         let config = config::Config::load();
+        
+        // Klone die Werte, die wir später brauchen
+        let toolbar_position = config.ui.toolbar_position.clone();
+        let square_color = config.colors.square.clone();
 
         // Hauptfenster erstellen
         let window = ApplicationWindow::builder()
@@ -68,7 +72,7 @@ fn main() {
             let unit_combo = unit_combo.clone();
             let result_label = result_label.clone();
             let drawing_area = drawing_area.clone();
-            let square_color = config.colors.square.clone(); // Klone die Farbe hier
+            let square_color = square_color.clone();
 
             move |_| {
                 let input = input_entry.text().parse::<f64>().unwrap_or(0.0);
@@ -85,10 +89,9 @@ fn main() {
                 result_label.set_text(&format!("{}px = {:.2}mm = {:.2}in", px, mm, inch));
 
                 // Zeichne das Pixel-Quadrat
-                drawing_area.queue_draw();
-                let square_color_clone = square_color.clone(); // Klone für den Draw-Handler
+                let square_color_for_draw = square_color.clone();
                 drawing_area.connect_draw(move |_, cr| {
-                    let square_rgba = RGBA::parse(&square_color_clone).unwrap();
+                    let square_rgba = RGBA::parse(&square_color_for_draw).unwrap();
                     cr.set_source_rgba(
                         square_rgba.red() as f64,
                         square_rgba.green() as f64,
@@ -99,6 +102,7 @@ fn main() {
                     cr.fill().unwrap();
                     Inhibit(false)
                 });
+                drawing_area.queue_draw();
             }
         });
 
@@ -133,10 +137,9 @@ fn main() {
         // Logik für Einstellungen-Knopf
         settings_button.connect_clicked({
             let window = window.clone();
-            let config_toolbar_pos = config.ui.toolbar_position.clone(); // Klone für späteren Gebrauch
 
             move |_| {
-                let current_config = config::Config::load(); // Lade Config neu im Closure
+                let current_config = config::Config::load();
                 
                 let settings_window = ApplicationWindow::builder()
                     .title("DuckPx Einstellungen")
@@ -213,7 +216,7 @@ fn main() {
         toolbar.pack_start(&settings_button, false, false, 0);
 
         // Position der Toolbar (oben oder unten)
-        match config.ui.toolbar_position.as_str() {
+        match toolbar_position.as_str() {
             "top" => {
                 vbox.pack_start(&toolbar, false, false, 0);
                 vbox.pack_start(&input_entry, false, false, 0);
