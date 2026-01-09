@@ -37,6 +37,7 @@ wget -O ~/.config/duckpx/config.toml https://raw.githubusercontent.com/Change-Go
 wget -O /usr/share/applications/duckpx.desktop https://raw.githubusercontent.com/Change-Goose-Open-Surce-Software/duckpx/main/duckpx.desktop
 wget -O /usr/local/share/duckpx/update.sh https://raw.githubusercontent.com/Change-Goose-Open-Surce-Software/duckpx/main/install.sh
 wget -O /usr/local/share/duckpx/icon.png https://raw.githubusercontent.com/Change-Goose-Open-Surce-Software/duckpx/main/icon.png
+wget -O /usr/local/share/duckpx/src/translations.rs https://raw.githubusercontent.com/Change-Goose-Open-Surce-Software/duckpx/main/translations.rs
 
 #Funktionalitätder .desktop datei sicherstellen
 sudo update-desktop-database
