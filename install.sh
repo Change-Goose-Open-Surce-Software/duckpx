@@ -23,6 +23,7 @@ sudo apt install cargo -y
 sudo apt install rustc -y
 
 #Erstellen der Notwendigen Ordner
+sudo mkdir -p /usr/local/bin/
 sudo mkdir -p /usr/local/share/duckpx
 sudo mkdir -p /usr/local/share/duckpx/src
 mkdir -p ~/.config/duckpx
