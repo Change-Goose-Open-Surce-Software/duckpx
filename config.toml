@@ -1,7 +1,9 @@
 [colors]
-background = "#FFFFFF"
-foreground = "#000000"
 square = "#FFA500"
 
 [ui]
 toolbar_position = "top"
+manual_sidebar_position = "left"
+
+[language]
+current = "de"
