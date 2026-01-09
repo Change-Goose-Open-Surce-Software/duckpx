@@ -446,7 +446,7 @@ fn show_manual_window(
     sidebar.pack_start(&troubleshooting_btn, false, false, 0);
 
     // Content Area
-    let scroll = ScrolledWindow::new(gtk::NONE_ADJUSTMENT, gtk::NONE_ADJUSTMENT);
+    let scroll = ScrolledWindow::new::<gtk::Adjustment, gtk::Adjustment>(None, None);
     let content_label = Label::new(None);
     content_label.set_line_wrap(true);
     content_label.set_margin_start(20);
@@ -462,41 +462,41 @@ fn show_manual_window(
     let get_manual_content = move |section: &str| -> String {
         match current_lang.as_str() {
             "de" => match section {
-                "overview" => "=== ÜBERSICHT ===\n\nDuckPx ist ein Tool zur Umrechnung zwischen Pixeln, Millimetern und Inches.\n\nEs bietet eine visuelle Darstellung der eingegebenen Größe und unterstützt mehrere Sprachen.".to_string(),
-                "usage" => "=== VERWENDUNG ===\n\n1. Geben Sie eine Zahl in das Eingabefeld ein\n2. Wählen Sie die Einheit (Pixel, Millimeter oder Inch)\n3. Drücken Sie 'Berechnen' oder Enter\n4. Das Ergebnis wird angezeigt und ein Quadrat in der entsprechenden Größe gezeichnet".to_string(),
-                "settings" => "=== EINSTELLUNGEN ===\n\n- Toolbar-Position: Oben, Unten, Links oder Rechts\n- Anleitungs-Position: Position dieser Anleitung\n- Quadratfarbe: Farbe des angezeigten Quadrats\n- Sprache: Deutsch, English, Français, Русский, 中文".to_string(),
+                "overview" => "=== UEBERSICHT ===\n\nDuckPx ist ein Tool zur Umrechnung zwischen Pixeln, Millimetern und Inches.\n\nEs bietet eine visuelle Darstellung der eingegebenen Groesse und unterstuetzt mehrere Sprachen.".to_string(),
+                "usage" => "=== VERWENDUNG ===\n\n1. Geben Sie eine Zahl in das Eingabefeld ein\n2. Waehlen Sie die Einheit (Pixel, Millimeter oder Inch)\n3. Druecken Sie 'Berechnen' oder Enter\n4. Das Ergebnis wird angezeigt und ein Quadrat in der entsprechenden Groesse gezeichnet".to_string(),
+                "settings" => "=== EINSTELLUNGEN ===\n\n- Toolbar-Position: Oben, Unten, Links oder Rechts\n- Anleitungs-Position: Position dieser Anleitung\n- Quadratfarbe: Farbe des angezeigten Quadrats\n- Sprache: Deutsch, English, Francais, Russki, Zhongwen".to_string(),
                 "examples" => "=== BEISPIELE ===\n\n50 Pixel = 13.23 mm = 0.52 inch\n100 mm = 377.95 px = 3.94 inch\n2 inch = 190.08 px = 50.80 mm".to_string(),
-                "troubleshooting" => "=== FEHLERBEHEBUNG ===\n\nProblem: Das Programm startet nicht\nLösung: Führen Sie 'duckpx' im Terminal aus\n\nProblem: Update funktioniert nicht\nLösung: Führen Sie manuell aus:\nsudo /usr/local/share/duckpx/update.sh".to_string(),
+                "troubleshooting" => "=== FEHLERBEHEBUNG ===\n\nProblem: Das Programm startet nicht\nLoesung: Fuehren Sie 'duckpx' im Terminal aus\n\nProblem: Update funktioniert nicht\nLoesung: Fuehren Sie manuell aus:\nsudo /usr/local/share/duckpx/update.sh".to_string(),
                 _ => "".to_string(),
             },
             "fr" => match section {
-                "overview" => "=== APERÇU ===\n\nDuckPx est un outil de conversion entre pixels, millimètres et pouces.\n\nIl offre une représentation visuelle de la taille saisie et prend en charge plusieurs langues.".to_string(),
-                "usage" => "=== UTILISATION ===\n\n1. Entrez un nombre dans le champ de saisie\n2. Sélectionnez l'unité (Pixel, Millimètre ou Pouce)\n3. Appuyez sur 'Calculer' ou Entrée\n4. Le résultat s'affiche et un carré de la taille correspondante est dessiné".to_string(),
-                "settings" => "=== PARAMÈTRES ===\n\n- Position de la barre: Haut, Bas, Gauche ou Droite\n- Position du manuel: Position de ce manuel\n- Couleur du carré: Couleur du carré affiché\n- Langue: Deutsch, English, Français, Русский, 中文".to_string(),
+                "overview" => "=== APERCU ===\n\nDuckPx est un outil de conversion entre pixels, millimetres et pouces.\n\nIl offre une representation visuelle de la taille saisie et prend en charge plusieurs langues.".to_string(),
+                "usage" => "=== UTILISATION ===\n\n1. Entrez un nombre dans le champ de saisie\n2. Selectionnez l'unite (Pixel, Millimetre ou Pouce)\n3. Appuyez sur 'Calculer' ou Entree\n4. Le resultat s'affiche et un carre de la taille correspondante est dessine".to_string(),
+                "settings" => "=== PARAMETRES ===\n\n- Position de la barre: Haut, Bas, Gauche ou Droite\n- Position du manuel: Position de ce manuel\n- Couleur du carre: Couleur du carre affiche\n- Langue: Deutsch, English, Francais, Russki, Zhongwen".to_string(),
                 "examples" => "=== EXEMPLES ===\n\n50 Pixel = 13.23 mm = 0.52 pouce\n100 mm = 377.95 px = 3.94 pouces\n2 pouces = 190.08 px = 50.80 mm".to_string(),
-                "troubleshooting" => "=== DÉPANNAGE ===\n\nProblème: Le programme ne démarre pas\nSolution: Exécutez 'duckpx' dans le terminal\n\nProblème: La mise à jour ne fonctionne pas\nSolution: Exécutez manuellement:\nsudo /usr/local/share/duckpx/update.sh".to_string(),
+                "troubleshooting" => "=== DEPANNAGE ===\n\nProbleme: Le programme ne demarre pas\nSolution: Executez 'duckpx' dans le terminal\n\nProbleme: La mise a jour ne fonctionne pas\nSolution: Executez manuellement:\nsudo /usr/local/share/duckpx/update.sh".to_string(),
                 _ => "".to_string(),
             },
             "ru" => match section {
-                "overview" => "=== ОБЗОР ===\n\nDuckPx — это инструмент для преобразования между пикселями, миллиметрами и дюймами.\n\nОн предоставляет визуальное представление введенного размера и поддерживает несколько языков.".to_string(),
-                "usage" => "=== ИСПОЛЬЗОВАНИЕ ===\n\n1. Введите число в поле ввода\n2. Выберите единицу измерения (Пиксель, Миллиметр или Дюйм)\n3. Нажмите 'Вычислить' или Enter\n4. Результат отображается, и рисуется квадрат соответствующего размера".to_string(),
-                "settings" => "=== НАСТРОЙКИ ===\n\n- Позиция панели: Сверху, Снизу, Слева или Справа\n- Позиция руководства: Позиция этого руководства\n- Цвет квадрата: Цвет отображаемого квадрата\n- Язык: Deutsch, English, Français, Русский, 中文".to_string(),
-                "examples" => "=== ПРИМЕРЫ ===\n\n50 Пиксель = 13.23 мм = 0.52 дюйма\n100 мм = 377.95 px = 3.94 дюйма\n2 дюйма = 190.08 px = 50.80 мм".to_string(),
-                "troubleshooting" => "=== УСТРАНЕНИЕ НЕПОЛАДОК ===\n\nПроблема: Программа не запускается\nРешение: Выполните 'duckpx' в терминале\n\nПроблема: Обновление не работает\nРешение: Выполните вручную:\nsudo /usr/local/share/duckpx/update.sh".to_string(),
+                "overview" => "=== OBZOR ===\n\nDuckPx - eto instrument dlya preobrazovaniya mezhdu pikselyami, millimetrami i dyuymami.\n\nOn predostavlyaet vizualnoe predstavlenie vvedennogo razmera i podderzhivaet neskolko yazykov.".to_string(),
+                "usage" => "=== ISPOLZOVANIE ===\n\n1. Vvedite chislo v pole vvoda\n2. Vyberte edinitsu izmereniya (Piksel, Millimetr ili Dyuym)\n3. Nazhmite 'Vychislit' ili Enter\n4. Rezultat otobrazhaetsya, i risuetsya kvadrat sootvetstvuyushchego razmera".to_string(),
+                "settings" => "=== NASTROYKI ===\n\n- Pozitsiya paneli: Sverkhu, Snizu, Sleva ili Sprava\n- Pozitsiya rukovodstva: Pozitsiya etogo rukovodstva\n- Tsvet kvadrata: Tsvet otobrazhaemogo kvadrata\n- Yazyk: Deutsch, English, Francais, Russki, Zhongwen".to_string(),
+                "examples" => "=== PRIMERY ===\n\n50 Piksel = 13.23 mm = 0.52 dyuyma\n100 mm = 377.95 px = 3.94 dyuyma\n2 dyuyma = 190.08 px = 50.80 mm".to_string(),
+                "troubleshooting" => "=== USTRANENIE NEPOLADOK ===\n\nProblema: Programma ne zapuskaetsya\nReshenie: Vypolnite 'duckpx' v terminale\n\nProblema: Obnovlenie ne rabotaet\nReshenie: Vypolnite vruchnuyu:\nsudo /usr/local/share/duckpx/update.sh".to_string(),
                 _ => "".to_string(),
             },
             "zh" => match section {
-                "overview" => "=== 概述 ===\n\nDuckPx 是一个在像素、毫米和英寸之间转换的工具。\n\n它提供输入大小的可视化表示，并支持多种语言。".to_string(),
-                "usage" => "=== 使用方法 ===\n\n1. 在输入框中输入数字\n2. 选择单位（像素、毫米或英寸）\n3. 按"计算"或回车\n4. 显示结果并绘制相应大小的正方形".to_string(),
-                "settings" => "=== 设置 ===\n\n- 工具栏位置：顶部、底部、左侧或右侧\n- 手册位置：此手册的位置\n- 方形颜色：显示方形的颜色\n- 语言：Deutsch, English, Français, Русский, 中文".to_string(),
-                "examples" => "=== 示例 ===\n\n50 像素 = 13.23 毫米 = 0.52 英寸\n100 毫米 = 377.95 像素 = 3.94 英寸\n2 英寸 = 190.08 像素 = 50.80 毫米".to_string(),
-                "troubleshooting" => "=== 故障排除 ===\n\n问题：程序无法启动\n解决方案：在终端中运行 'duckpx'\n\n问题：更新不起作用\n解决方案：手动执行：\nsudo /usr/local/share/duckpx/update.sh".to_string(),
+                "overview" => "=== GAISHU ===\n\nDuckPx shi yige zai xiangsu, haomi he yingcun zhijian zhuanhuan de gongju.\n\nTa tigong shuru daxiao de keshihua biaoshi, bing zhichi duo zhong yuyan.".to_string(),
+                "usage" => "=== SHIYONG FANGFA ===\n\n1. Zai shurukuang zhong shuru shuzi\n2. Xuanze danwei (xiangsu, haomi huo yingcun)\n3. An 'Jisuan' huo huiche\n4. Xianshi jieguo bing huizhi xiangying daxiao de zhengfangxing".to_string(),
+                "settings" => "=== SHEZHI ===\n\n- Gongjulan weizhi: Dingbu, Dibu, Zuoce huo Youce\n- Shouce weizhi: Ci shouce de weizhi\n- Fangxing yanse: Xianshi fangxing de yanse\n- Yuyan: Deutsch, English, Francais, Russki, Zhongwen".to_string(),
+                "examples" => "=== SHILI ===\n\n50 xiangsu = 13.23 haomi = 0.52 yingcun\n100 haomi = 377.95 xiangsu = 3.94 yingcun\n2 yingcun = 190.08 xiangsu = 50.80 haomi".to_string(),
+                "troubleshooting" => "=== GUZHANG PAICHU ===\n\nWenti: Chengxu wufa qidong\nJiejue fangan: Zai zhongduan zhong yunxing 'duckpx'\n\nWenti: Gengxin bu qizuoyong\nJiejue fangan: Shoudong zhixing:\nsudo /usr/local/share/duckpx/update.sh".to_string(),
                 _ => "".to_string(),
             },
             _ => match section {
                 "overview" => "=== OVERVIEW ===\n\nDuckPx is a tool for converting between pixels, millimeters and inches.\n\nIt provides a visual representation of the entered size and supports multiple languages.".to_string(),
                 "usage" => "=== USAGE ===\n\n1. Enter a number in the input field\n2. Select the unit (Pixel, Millimeter or Inch)\n3. Press 'Calculate' or Enter\n4. The result is displayed and a square of the corresponding size is drawn".to_string(),
-                "settings" => "=== SETTINGS ===\n\n- Toolbar Position: Top, Bottom, Left or Right\n- Manual Position: Position of this manual\n- Square Color: Color of the displayed square\n- Language: Deutsch, English, Français, Русский, 中文".to_string(),
+                "settings" => "=== SETTINGS ===\n\n- Toolbar Position: Top, Bottom, Left or Right\n- Manual Position: Position of this manual\n- Square Color: Color of the displayed square\n- Language: Deutsch, English, Francais, Russki, Zhongwen".to_string(),
                 "examples" => "=== EXAMPLES ===\n\n50 Pixel = 13.23 mm = 0.52 inch\n100 mm = 377.95 px = 3.94 inch\n2 inch = 190.08 px = 50.80 mm".to_string(),
                 "troubleshooting" => "=== TROUBLESHOOTING ===\n\nProblem: The program does not start\nSolution: Run 'duckpx' in the terminal\n\nProblem: Update doesn't work\nSolution: Run manually:\nsudo /usr/local/share/duckpx/update.sh".to_string(),
                 _ => "".to_string(),
