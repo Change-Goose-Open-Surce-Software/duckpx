@@ -5,4 +5,5 @@ Exec=/usr/local/bin/duckpx
 Icon=/usr/local/share/duckpx/icon.png
 Terminal=false
 Type=Application
-Categories=Utility;
+Categories=Utility;Calculator;
+Keywords=Change;Goose;Duck;Pixel;Rust;Beta;
