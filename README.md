@@ -8,7 +8,7 @@ Fast Install (Stable)
 `Stable version is not available since Duckpx is currently in Early Access`
 
 Manuel Install  
-`rm ./install.sh && wget https://raw.githubusercontent.com/Change-Goose-Open-Surce-Software/duckpx/main/install.sh && chmod +x install.sh && sudo ./install.sh ./install.sh && wget https://raw.githubusercontent.com/Change-Goose-Open-Surce-Software/duckpx/main/install.sh && chmod +x install.sh && sudo ./install.sh`
+`rm ./install.sh && wget https://raw.githubusercontent.com/Change-Goose-Open-Surce-Software/duckpx/main/install.sh && chmod +x install.sh && sudo ./install.sh`
 
 *<ins>What are the differents betwen Fast Install and Manuel Install ?</ins>*
 
