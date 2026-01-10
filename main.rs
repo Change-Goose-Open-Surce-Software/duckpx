@@ -59,7 +59,6 @@ fn build_ui(app: &Application) {
     let settings_button = Button::with_label(&translations.get(&current_lang, "settings"));
     let version_button = Button::with_label(&translations.get(&current_lang, "version"));
     let manual_button = Button::with_label(&translations.get(&current_lang, "manual"));
-    let restart_button = Button::with_label(&translations.get(&current_lang, "restart"));
 
     // Unit-Dropdown
     let unit_combo = ComboBoxText::new();
@@ -162,7 +161,7 @@ fn build_ui(app: &Application) {
                 .spawn();
             
             if result.is_ok() {
-                break;
+                std::process::exit(0); // DuckPx beenden, sobald das Terminal geöffnet wurde
             }
         }
     });
@@ -188,21 +187,6 @@ fn build_ui(app: &Application) {
         }
     });
 
-    // Restart Button
-    restart_button.connect_clicked({
-        let window = window.clone();
-        move |_| {
-            window.close();
-            let app = Application::builder()
-                .application_id("org.changegoose.duckpx")
-                .build();
-            app.connect_activate(|app| {
-                build_ui(app);
-            });
-            app.run();
-        }
-    });
-
     // Settings Button
     settings_button.connect_clicked({
         let window = window.clone();
@@ -220,7 +204,6 @@ fn build_ui(app: &Application) {
     toolbar_box.pack_start(&version_button, false, false, 0);
     toolbar_box.pack_start(&manual_button, false, false, 0);
     toolbar_box.pack_start(&settings_button, false, false, 0);
-    toolbar_box.pack_start(&restart_button, false, false, 0);
 
     // Content zusammenbauen
     content_box.pack_start(&input_entry, false, false, 0);
@@ -462,43 +445,43 @@ fn show_manual_window(
     let get_manual_content = move |section: &str| -> String {
         match current_lang.as_str() {
             "de" => match section {
-                "overview" => "=== UEBERSICHT ===\n\nDuckPx ist ein Tool zur Umrechnung zwischen Pixeln, Millimetern und Inches.\n\nEs bietet eine visuelle Darstellung der eingegebenen Groesse und unterstuetzt mehrere Sprachen.".to_string(),
-                "usage" => "=== VERWENDUNG ===\n\n1. Geben Sie eine Zahl in das Eingabefeld ein\n2. Waehlen Sie die Einheit (Pixel, Millimeter oder Inch)\n3. Druecken Sie 'Berechnen' oder Enter\n4. Das Ergebnis wird angezeigt und ein Quadrat in der entsprechenden Groesse gezeichnet".to_string(),
-                "settings" => "=== EINSTELLUNGEN ===\n\n- Toolbar-Position: Oben, Unten, Links oder Rechts\n- Anleitungs-Position: Position dieser Anleitung\n- Quadratfarbe: Farbe des angezeigten Quadrats\n- Sprache: Deutsch, English, Francais, Russki, Zhongwen".to_string(),
+                "overview" => "=== UEBERSICHT ===\n\nDuckPx ist ein Tool zur Umrechnung zwischen Pixeln, Millimetern und Inches.\n\nEs bietet eine visuelle Darstellung der eingegebenen Groesse und unt[...]
+                "usage" => "=== VERWENDUNG ===\n\n1. Geben Sie eine Zahl in das Eingabefeld ein\n2. Waehlen Sie die Einheit (Pixel, Millimeter oder Inch)\n3. Druecken Sie 'Berechnen' oder Enter\n4. Da[...]
+                "settings" => "=== EINSTELLUNGEN ===\n\n- Toolbar-Position: Oben, Unten, Links oder Rechts\n- Anleitungs-Position: Position dieser Anleitung\n- Quadratfarbe: Farbe des angezeigten Quad[...]
                 "examples" => "=== BEISPIELE ===\n\n50 Pixel = 13.23 mm = 0.52 inch\n100 mm = 377.95 px = 3.94 inch\n2 inch = 190.08 px = 50.80 mm".to_string(),
-                "troubleshooting" => "=== FEHLERBEHEBUNG ===\n\nProblem: Das Programm startet nicht\nLoesung: Fuehren Sie 'duckpx' im Terminal aus\n\nProblem: Update funktioniert nicht\nLoesung: Fuehren Sie manuell aus:\nsudo /usr/local/share/duckpx/update.sh".to_string(),
+                "troubleshooting" => "=== FEHLERBEHEBUNG ===\n\nProblem: Das Programm startet nicht\nLoesung: Fuehren Sie 'duckpx' im Terminal aus\n\nProblem: Update funktioniert nicht\nLoesung: Fuehr[...]
                 _ => "".to_string(),
             },
             "fr" => match section {
-                "overview" => "=== APERCU ===\n\nDuckPx est un outil de conversion entre pixels, millimetres et pouces.\n\nIl offre une representation visuelle de la taille saisie et prend en charge plusieurs langues.".to_string(),
-                "usage" => "=== UTILISATION ===\n\n1. Entrez un nombre dans le champ de saisie\n2. Selectionnez l'unite (Pixel, Millimetre ou Pouce)\n3. Appuyez sur 'Calculer' ou Entree\n4. Le resultat s'affiche et un carre de la taille correspondante est dessine".to_string(),
-                "settings" => "=== PARAMETRES ===\n\n- Position de la barre: Haut, Bas, Gauche ou Droite\n- Position du manuel: Position de ce manuel\n- Couleur du carre: Couleur du carre affiche\n- Langue: Deutsch, English, Francais, Russki, Zhongwen".to_string(),
+                "overview" => "=== APERCU ===\n\nDuckPx est un outil de conversion entre pixels, millimetres et pouces.\n\nIl offre une representation visuelle de la taille saisie et prend en charge p[...]
+                "usage" => "=== UTILISATION ===\n\n1. Entrez un nombre dans le champ de saisie\n2. Selectionnez l'unite (Pixel, Millimetre ou Pouce)\n3. Appuyez sur 'Calculer' ou Entree\n4. Le resulta[...]
+                "settings" => "=== PARAMETRES ===\n\n- Position de la barre: Haut, Bas, Gauche ou Droite\n- Position du manuel: Position de ce manuel\n- Couleur du carre: Couleur du carre affiche\n- L[...]
                 "examples" => "=== EXEMPLES ===\n\n50 Pixel = 13.23 mm = 0.52 pouce\n100 mm = 377.95 px = 3.94 pouces\n2 pouces = 190.08 px = 50.80 mm".to_string(),
-                "troubleshooting" => "=== DEPANNAGE ===\n\nProbleme: Le programme ne demarre pas\nSolution: Executez 'duckpx' dans le terminal\n\nProbleme: La mise a jour ne fonctionne pas\nSolution: Executez manuellement:\nsudo /usr/local/share/duckpx/update.sh".to_string(),
+                "troubleshooting" => "=== DEPANNAGE ===\n\nProbleme: Le programme ne demarre pas\nSolution: Executez 'duckpx' dans le terminal\n\nProbleme: La mise a jour ne fonctionne pas\nSolution: [...]
                 _ => "".to_string(),
             },
             "ru" => match section {
-                "overview" => "=== OBZOR ===\n\nDuckPx - eto instrument dlya preobrazovaniya mezhdu pikselyami, millimetrami i dyuymami.\n\nOn predostavlyaet vizualnoe predstavlenie vvedennogo razmera i podderzhivaet neskolko yazykov.".to_string(),
-                "usage" => "=== ISPOLZOVANIE ===\n\n1. Vvedite chislo v pole vvoda\n2. Vyberte edinitsu izmereniya (Piksel, Millimetr ili Dyuym)\n3. Nazhmite 'Vychislit' ili Enter\n4. Rezultat otobrazhaetsya, i risuetsya kvadrat sootvetstvuyushchego razmera".to_string(),
-                "settings" => "=== NASTROYKI ===\n\n- Pozitsiya paneli: Sverkhu, Snizu, Sleva ili Sprava\n- Pozitsiya rukovodstva: Pozitsiya etogo rukovodstva\n- Tsvet kvadrata: Tsvet otobrazhaemogo kvadrata\n- Yazyk: Deutsch, English, Francais, Russki, Zhongwen".to_string(),
+                "overview" => "=== OBZOR ===\n\nDuckPx - eto instrument dlya preobrazovaniya mezhdu pikselyami, millimetrami i dyuymami.\n\nOn predostavlyaet vizualnoe predstavlenie vvedennogo razmera[...]
+                "usage" => "=== ISPOLZOVANIE ===\n\n1. Vvedite chislo v pole vvoda\n2. Vyberte edinitsu izmereniya (Piksel, Millimetr ili Dyuym)\n3. Nazhmite 'Vychislit' ili Enter\n4. Rezultat otobraz[...]
+                "settings" => "=== NASTROYKI ===\n\n- Pozitsiya paneli: Sverkhu, Snizu, Sleva ili Sprava\n- Pozitsiya rukovodstva: Pozitsiya etogo rukovodstva\n- Tsvet kvadrata: Tsvet otobrazhaemogo k[...]
                 "examples" => "=== PRIMERY ===\n\n50 Piksel = 13.23 mm = 0.52 dyuyma\n100 mm = 377.95 px = 3.94 dyuyma\n2 dyuyma = 190.08 px = 50.80 mm".to_string(),
-                "troubleshooting" => "=== USTRANENIE NEPOLADOK ===\n\nProblema: Programma ne zapuskaetsya\nReshenie: Vypolnite 'duckpx' v terminale\n\nProblema: Obnovlenie ne rabotaet\nReshenie: Vypolnite vruchnuyu:\nsudo /usr/local/share/duckpx/update.sh".to_string(),
+                "troubleshooting" => "=== USTRANENIE NEPOLADOK ===\n\nProblema: Programma ne zapuskaetsya\nReshenie: Vypolnite 'duckpx' v terminale\n\nProblema: Obnovlenie ne rabotaet\nReshenie: Vypol[...]
                 _ => "".to_string(),
             },
             "zh" => match section {
-                "overview" => "=== GAISHU ===\n\nDuckPx shi yige zai xiangsu, haomi he yingcun zhijian zhuanhuan de gongju.\n\nTa tigong shuru daxiao de keshihua biaoshi, bing zhichi duo zhong yuyan.".to_string(),
-                "usage" => "=== SHIYONG FANGFA ===\n\n1. Zai shurukuang zhong shuru shuzi\n2. Xuanze danwei (xiangsu, haomi huo yingcun)\n3. An 'Jisuan' huo huiche\n4. Xianshi jieguo bing huizhi xiangying daxiao de zhengfangxing".to_string(),
-                "settings" => "=== SHEZHI ===\n\n- Gongjulan weizhi: Dingbu, Dibu, Zuoce huo Youce\n- Shouce weizhi: Ci shouce de weizhi\n- Fangxing yanse: Xianshi fangxing de yanse\n- Yuyan: Deutsch, English, Francais, Russki, Zhongwen".to_string(),
+                "overview" => "=== GAISHU ===\n\nDuckPx shi yige zai xiangsu, haomi he yingcun zhijian zhuanhuan de gongju.\n\nTa tigong shuru daxiao de keshihua biaoshi, bing zhichi duo zhong yuyan[...]
+                "usage" => "=== SHIYONG FANGFA ===\n\n1. Zai shurukuang zhong shuru shuzi\n2. Xuanze danwei (xiangsu, haomi huo yingcun)\n3. An 'Jisuan' huo huiche\n4. Xianshi jieguo bing huizhi xiang[...]
+                "settings" => "=== SHEZHI ===\n\n- Gongjulan weizhi: Dingbu, Dibu, Zuoce huo Youce\n- Shouce weizhi: Ci shouce de weizhi\n- Fangxing yanse: Xianshi fangxing de yanse\n- Yuyan: Deutsch,[...]
                 "examples" => "=== SHILI ===\n\n50 xiangsu = 13.23 haomi = 0.52 yingcun\n100 haomi = 377.95 xiangsu = 3.94 yingcun\n2 yingcun = 190.08 xiangsu = 50.80 haomi".to_string(),
-                "troubleshooting" => "=== GUZHANG PAICHU ===\n\nWenti: Chengxu wufa qidong\nJiejue fangan: Zai zhongduan zhong yunxing 'duckpx'\n\nWenti: Gengxin bu qizuoyong\nJiejue fangan: Shoudong zhixing:\nsudo /usr/local/share/duckpx/update.sh".to_string(),
+                "troubleshooting" => "=== GUZHANG PAICHU ===\n\nWenti: Chengxu wufa qidong\nJiejue fangan: Zai zhongduan zhong yunxing 'duckpx'\n\nWenti: Gengxin bu qizuoyong\nJiejue fangan: Shoudong [...]
                 _ => "".to_string(),
             },
             _ => match section {
-                "overview" => "=== OVERVIEW ===\n\nDuckPx is a tool for converting between pixels, millimeters and inches.\n\nIt provides a visual representation of the entered size and supports multiple languages.".to_string(),
-                "usage" => "=== USAGE ===\n\n1. Enter a number in the input field\n2. Select the unit (Pixel, Millimeter or Inch)\n3. Press 'Calculate' or Enter\n4. The result is displayed and a square of the corresponding size is drawn".to_string(),
-                "settings" => "=== SETTINGS ===\n\n- Toolbar Position: Top, Bottom, Left or Right\n- Manual Position: Position of this manual\n- Square Color: Color of the displayed square\n- Language: Deutsch, English, Francais, Russki, Zhongwen".to_string(),
+                "overview" => "=== OVERVIEW ===\n\nDuckPx is a tool for converting between pixels, millimeters and inches.\n\nIt provides a visual representation of the entered size and supports multi[...]
+                "usage" => "=== USAGE ===\n\n1. Enter a number in the input field\n2. Select the unit (Pixel, Millimeter or Inch)\n3. Press 'Calculate' or Enter\n4. The result is displayed and a squar[...]
+                "settings" => "=== SETTINGS ===\n\n- Toolbar Position: Top, Bottom, Left or Right\n- Manual Position: Position of this manual\n- Square Color: Color of the displayed square\n- Language[...]
                 "examples" => "=== EXAMPLES ===\n\n50 Pixel = 13.23 mm = 0.52 inch\n100 mm = 377.95 px = 3.94 inch\n2 inch = 190.08 px = 50.80 mm".to_string(),
-                "troubleshooting" => "=== TROUBLESHOOTING ===\n\nProblem: The program does not start\nSolution: Run 'duckpx' in the terminal\n\nProblem: Update doesn't work\nSolution: Run manually:\nsudo /usr/local/share/duckpx/update.sh".to_string(),
+                "troubleshooting" => "=== TROUBLESHOOTING ===\n\nProblem: The program does not start\nSolution: Run 'duckpx' in the terminal\n\nProblem: Update doesn't work\nSolution: Run manually:\ns[...]
                 _ => "".to_string(),
             }
         }
