@@ -446,7 +446,7 @@ fn show_manual_window(
     sidebar.pack_start(&troubleshooting_btn, false, false, 0);
 
     // Content Area - KORRIGIERTE ZEILE
-    let scroll = ScrolledWindow::new(None, None);
+    let scroll = ScrolledWindow::new::<gtk::Adjustment, gtk::Adjustment>(None, None);
     let content_label = Label::new(None);
     content_label.set_line_wrap(true);
     content_label.set_margin_start(20);
