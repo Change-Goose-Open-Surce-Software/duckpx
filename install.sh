@@ -54,4 +54,5 @@ sudo cp target/release/duckpx /usr/local/bin/ || { echo "❌ Kopieren fehlgeschl
 sudo chmod +x /usr/local/share/duckpx/update.sh
 sudo chmod +x /usr/local/bin/duckpx
 
-echo Duckpx are installed now! Start it with the Command duckpx
+echo DuckPx Start now!
+duckpx
