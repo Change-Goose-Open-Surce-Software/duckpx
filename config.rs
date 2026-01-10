@@ -64,6 +64,7 @@ impl Config {
         toml::from_str(&content).unwrap()
     }
 
+    #[allow(dead_code)]
     pub fn save(&self) {
         let config_dir = dirs::config_dir().unwrap().join("duckpx");
         let config_path = config_dir.join("config.toml");
