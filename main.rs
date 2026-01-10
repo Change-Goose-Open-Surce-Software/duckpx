@@ -25,7 +25,7 @@ fn main() {
 fn build_ui(app: &Application) {
     let config = Rc::new(RefCell::new(config::Config::load()));
     let translations = Rc::new(translations::Translations::new());
-    
+
     let current_lang = config.borrow().language.current.clone();
     let toolbar_position = config.borrow().ui.toolbar_position.clone();
     let square_color = config.borrow().colors.square.clone();
@@ -78,7 +78,7 @@ fn build_ui(app: &Application) {
 
     // Result Label - GRÖSSER
     let result_label = Label::new(Some(&translations.get(&current_lang, "result_default")));
-    result_label.set_markup(&format!("<span size='x-large'>{}</span>", 
+    result_label.set_markup(&format!("<span size='x-large'>{}</span>",
         translations.get(&current_lang, "result_default")));
 
     // Drawing Area
@@ -108,7 +108,7 @@ fn build_ui(app: &Application) {
 
             // GRÖSSERE ANZEIGE
             result_label.set_markup(&format!(
-                "<span size='xx-large' weight='bold'>{:.0}px = {:.2}mm = {:.2}in</span>", 
+                "<span size='xx-large' weight='bold'>{:.0}px = {:.2}mm = {:.2}in</span>",
                 px, mm, inch
             ));
 
@@ -152,7 +152,7 @@ fn build_ui(app: &Application) {
     update_button.connect_clicked(move |_| {
         // Versuche verschiedene Terminal-Emulatoren
         let terminals = vec!["gnome-terminal", "konsole", "xfce4-terminal", "xterm", "terminator"];
-        
+
         for terminal in terminals {
             let result = Command::new(terminal)
                 .arg("--")
@@ -160,7 +160,7 @@ fn build_ui(app: &Application) {
                 .arg("-c")
                 .arg("sudo /usr/local/share/duckpx/update.sh; read -p 'Drücke Enter zum Beenden...'")
                 .spawn();
-            
+
             if result.is_ok() {
                 break;
             }
@@ -182,7 +182,7 @@ fn build_ui(app: &Application) {
         let window = window.clone();
         let config = config.clone();
         let translations = translations.clone();
-        
+
         move |_| {
             show_manual_window(&window, &config, &translations);
         }
@@ -208,7 +208,7 @@ fn build_ui(app: &Application) {
         let window = window.clone();
         let config = config.clone();
         let translations = translations.clone();
-        
+
         move |_| {
             show_settings_window(&window, &config, &translations);
         }
@@ -261,7 +261,7 @@ fn show_settings_window(
 ) {
     let current_config = config.borrow().clone();
     let current_lang = current_config.language.current.clone();
-    
+
     let settings_window = ApplicationWindow::builder()
         .title(&translations.get(&current_lang, "settings_title"))
         .transient_for(parent)
@@ -349,7 +349,7 @@ fn show_settings_window(
 
         move |_| {
             let mut new_config = config.borrow().clone();
-            
+
             new_config.ui.toolbar_position = match toolbar_pos_combo.active() {
                 Some(0) => "top".to_string(),
                 Some(1) => "bottom".to_string(),
@@ -379,7 +379,7 @@ fn show_settings_window(
 
             settings_window.close();
             parent.close();
-            
+
             // Neustart
             let app = Application::builder()
                 .application_id("org.changegoose.duckpx")
@@ -413,7 +413,7 @@ fn show_manual_window(
     let current_config = config.borrow().clone();
     let current_lang = current_config.language.current.clone();
     let sidebar_pos = current_config.ui.manual_sidebar_position.clone();
-    
+
     let manual_window = ApplicationWindow::builder()
         .title(&translations.get(&current_lang, "manual_title"))
         .transient_for(parent)
