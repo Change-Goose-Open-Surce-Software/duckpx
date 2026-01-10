@@ -55,7 +55,7 @@ sudo chmod +x /usr/local/share/duckpx/update.sh
 sudo chmod +x /usr/local/bin/duckpx
 
 #Aufräumen
-rm -f ~/install.sh*
+rm -f ./install.sh*
 
 echo DuckPx Start now!
 duckpx
