@@ -445,8 +445,8 @@ fn show_manual_window(
     sidebar.pack_start(&examples_btn, false, false, 0);
     sidebar.pack_start(&troubleshooting_btn, false, false, 0);
 
-    // Content Area
-    let scroll = ScrolledWindow::new::<gtk::Adjustment, gtk::Adjustment>(None, None);
+    // Content Area - KORRIGIERTE ZEILE
+    let scroll = ScrolledWindow::new(None, None);
     let content_label = Label::new(None);
     content_label.set_line_wrap(true);
     content_label.set_margin_start(20);
@@ -498,76 +498,4 @@ fn show_manual_window(
                 "usage" => "=== USAGE ===\n\n1. Enter a number in the input field\n2. Select the unit (Pixel, Millimeter or Inch)\n3. Press 'Calculate' or Enter\n4. The result is displayed and a square of the corresponding size is drawn".to_string(),
                 "settings" => "=== SETTINGS ===\n\n- Toolbar Position: Top, Bottom, Left or Right\n- Manual Position: Position of this manual\n- Square Color: Color of the displayed square\n- Language: Deutsch, English, Francais, Russki, Zhongwen".to_string(),
                 "examples" => "=== EXAMPLES ===\n\n50 Pixel = 13.23 mm = 0.52 inch\n100 mm = 377.95 px = 3.94 inch\n2 inch = 190.08 px = 50.80 mm".to_string(),
-                "troubleshooting" => "=== TROUBLESHOOTING ===\n\nProblem: The program does not start\nSolution: Run 'duckpx' in the terminal\n\nProblem: Update doesn't work\nSolution: Run manually:\nsudo /usr/local/share/duckpx/update.sh".to_string(),
-                _ => "".to_string(),
-            }
-        }
-    };
-
-    // Initial content
-    content_label.set_text(&get_manual_content("overview"));
-
-    // Button handlers
-    overview_btn.connect_clicked({
-        let content_label = content_label.clone();
-        let get_manual_content = get_manual_content.clone();
-        move |_| {
-            content_label.set_text(&get_manual_content("overview"));
-        }
-    });
-
-    usage_btn.connect_clicked({
-        let content_label = content_label.clone();
-        let get_manual_content = get_manual_content.clone();
-        move |_| {
-            content_label.set_text(&get_manual_content("usage"));
-        }
-    });
-
-    settings_btn.connect_clicked({
-        let content_label = content_label.clone();
-        let get_manual_content = get_manual_content.clone();
-        move |_| {
-            content_label.set_text(&get_manual_content("settings"));
-        }
-    });
-
-    examples_btn.connect_clicked({
-        let content_label = content_label.clone();
-        let get_manual_content = get_manual_content.clone();
-        move |_| {
-            content_label.set_text(&get_manual_content("examples"));
-        }
-    });
-
-    troubleshooting_btn.connect_clicked({
-        let content_label = content_label.clone();
-        move |_| {
-            content_label.set_text(&get_manual_content("troubleshooting"));
-        }
-    });
-
-    // Layout nach Sidebar-Position
-    match sidebar_pos.as_str() {
-        "top" => {
-            main_box.pack_start(&sidebar, false, false, 0);
-            main_box.pack_start(&scroll, true, true, 0);
-        },
-        "bottom" => {
-            main_box.pack_start(&scroll, true, true, 0);
-            main_box.pack_end(&sidebar, false, false, 0);
-        },
-        "left" => {
-            main_box.pack_start(&sidebar, false, false, 0);
-            main_box.pack_start(&scroll, true, true, 0);
-        },
-        "right" => {
-            main_box.pack_start(&scroll, true, true, 0);
-            main_box.pack_end(&sidebar, false, false, 0);
-        },
-        _ => (),
-    }
-
-    manual_window.add(&main_box);
-    manual_window.show_all();
-}
+                "troubleshooting" => "=== TROUBLESHOOTING ===\n\nProblem: The program does not start\nSolution: Run 'duckpx' in the terminal\n\nProblem: Update doesn't work\nSolution: Run manually:\nsudo /usr/local/share/duckpx/update.sh
