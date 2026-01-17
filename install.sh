@@ -23,9 +23,9 @@ sudo apt install cargo -y
 sudo apt install rustc -y
 
 #Erstellen der Notwendigen Ordner
-sudo mkdir -p ~/local/bin/
-sudo mkdir -p ~/local/share/duckpx
-sudo mkdir -p ~/local/share/duckpx/src
+mkdir -p ~/local/bin/
+mkdir -p ~/local/share/duckpx
+mkdir -p ~/local/share/duckpx/src
 mkdir -p ~/.config/duckpx
 
 #holen der Datein von Github
@@ -41,6 +41,7 @@ wget -O ~/local/share/duckpx/src/i18n.rs https://raw.githubusercontent.com/Chang
 
 #Funktionalitätder .desktop datei sicherstellen
 sudo update-desktop-database
+update-desktop-database
 
 #Datein Komprimieren
 # Rust-Projekt bauen
@@ -48,7 +49,7 @@ echo "🔧 Baue DuckPx mit Cargo..."
 cd ~/local/share/duckpx || { echo "❌ Verzeichnis nicht gefunden!"; exit 1; }
 cargo clean  # Sauberer Build (löscht alte Artefakte)
 cargo build --release || { echo "❌ Build fehlgeschlagen! Prüfe Cargo.toml."; exit 1; }
-sudo cp target/release/duckpx ~/local/bin/ || { echo "❌ Kopieren fehlgeschlagen!"; exit 1; }
+cp target/release/duckpx ~/.local/bin/ || { echo "❌ Kopieren fehlgeschlagen!"; exit 1; }
 
 #Scripte Ausfühbar machen
 sudo chmod +x ~/local/share/duckpx/update.sh
