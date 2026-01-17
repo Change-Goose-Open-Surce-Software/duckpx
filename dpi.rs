@@ -10,17 +10,14 @@ pub fn px_to_inch(px: f64) -> f64 {
     px / 96.0  // 1 inch = 96px bei 96 DPI
 }
 
-#[allow(dead_code)]
 pub fn inch_to_px(inch: f64) -> f64 {
     inch * 96.0
 }
 
-#[allow(dead_code)]
 pub fn mm_to_inch(mm: f64) -> f64 {
     mm / 25.4  // 1 inch = 25.4 mm
 }
 
-#[allow(dead_code)]
 pub fn inch_to_mm(inch: f64) -> f64 {
     inch * 25.4
 }
