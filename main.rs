@@ -391,7 +391,7 @@ fn show_manual_window(parent: &ApplicationWindow, config: &Rc<RefCell<config::Co
     sidebar.set_margin_top(5);
     sidebar.set_margin_bottom(5);
 
-    let scrolled_window = ScrolledWindow::new(gtk::NONE_ADJUSTMENT, gtk::NONE_ADJUSTMENT);
+    let scrolled_window = ScrolledWindow::new(None::<&gtk::Adjustment>, None::<&gtk::Adjustment>);
     let text_view = TextView::new();
     text_view.set_editable(false);
     text_view.set_wrap_mode(gtk::WrapMode::Word);
