@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DuckPx Versionen</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #FFA500 0%, #FF6B00 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 3em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+        
+        .content {
+            padding: 40px;
+        }
+        
+        .version {
+            border-left: 5px solid #FFA500;
+            padding: 20px;
+            margin-bottom: 30px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            transition: transform 0.3s ease;
+        }
+        
+        .version:hover {
+            transform: translateX(10px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .version h2 {
+            color: #333;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .version-number {
+            background: #FFA500;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9em;
+        }
+        
+        .version-date {
+            color: #666;
+            font-size: 0.9em;
+            margin-bottom: 15px;
+        }
+        
+        .version ul {
+            list-style: none;
+            padding-left: 0;
+        }
+        
+        .version li {
+            padding: 8px 0;
+            padding-left: 25px;
+            position: relative;
+        }
+        
+        .version li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #FFA500;
+            font-weight: bold;
+        }
+        
+        .feature {
+            color: #28a745;
+        }
+        
+        .feature:before {
+            content: "★";
+        }
+        
+        .bugfix {
+            color: #dc3545;
+        }
+        
+        .bugfix:before {
+            content: "🔧";
+        }
+        
+        .footer {
+            text-align: center;
+            padding: 20px;
+            background: #f8f9fa;
+            color: #666;
+        }
+        
+        .footer a {
+            color: #FFA500;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        
+        .footer a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🦆 DuckPx</h1>
+            <p>Pixel & Millimeter Konverter</p>
+        </div>
+        
+        <div class="content">
+            <div class="version">
+                <h2>
+                    <span class="version-number">v1.2.0</span>
+                    Aktuelle Version
+                </h2>
+                <div class="version-date">17. Januar 2026</div>
+                <ul>
+                    <li class="feature">Mehrsprachigkeit (Deutsch, Englisch, Französisch, Russisch, Chinesisch)</li>
+                    <li class="feature">Automatische Spracherkennung basierend auf Systemsprache</li>
+                    <li class="feature">Version-Button zum Öffnen dieser Seite</li>
+                    <li class="feature">Ausführliche Anleitung mit Kategorien und durchsuchbaren Abschnitten</li>
+                    <li class="feature">Einstellbare Position der Anleitungs-Gliederung (Oben, Unten, Links, Rechts)</li>
+                    <li class="feature">Toolbar-Position jetzt auf 4 Seiten einstellbar (Oben, Unten, Links, Rechts)</li>
+                    <li class="feature">Enter-Taste Unterstützung im Eingabefeld</li>
+                    <li class="feature">Größere und übersichtlichere Ergebnisanzeige</li>
+                    <li class="feature">Neustart-Button in der Toolbar</li>
+                    <li class="bugfix">Update-Button öffnet jetzt Terminal-Emulator für Update-Skript</li>
+                    <li class="bugfix">Hintergrundfarben-Einstellung entfernt (nutzt jetzt Systemstandard)</li>
+                    <li class="bugfix">Absturz nach mehreren Eingaben behoben</li>
+                </ul>
+            </div>
+            
+            <div class="version">
+                <h2>
+                    <span class="version-number">v1.1.0</span>
+                </h2>
+                <div class="version-date">November 2025</div>
+                <ul>
+                    <li class="feature">Einstellungen-Fenster mit anpassbaren Optionen</li>
+                    <li class="feature">Konfigurierbare Toolbar-Position (Oben/Unten)</li>
+                    <li class="feature">Auswahl verschiedener Quadratfarben</li>
+                    <li class="feature">Anpassbare Hintergrundfarbe</li>
+                    <li class="feature">Persistente Konfiguration in TOML-Datei</li>
+                </ul>
+            </div>
+            
+            <div class="version">
+                <h2>
+                    <span class="version-number">v1.0.0</span>
+                    Erste Veröffentlichung
+                </h2>
+                <div class="version-date">Oktober 2025</div>
+                <ul>
+                    <li class="feature">Grundlegende Umrechnung zwischen Pixel, Millimeter und Inch</li>
+                    <li class="feature">Visuelle Darstellung mit farbigem Quadrat</li>
+                    <li class="feature">96 DPI Standard-Berechnung</li>
+                    <li class="feature">GitHub-Integration</li>
+                    <li class="feature">Update-Funktion</li>
+                    <li class="feature">GTK-basierte Benutzeroberfläche</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>
+                Entwickelt von <a href="https://github.com/Change-Goose-Open-Surce-Software" target="_blank">Change Goose</a>
+                <br>
+                <a href="https://github.com/Change-Goose-Open-Surce-Software/duckpx" target="_blank">GitHub Repository</a>
+            </p>
+        </div>
+    </div>
+</body>
+</html>
