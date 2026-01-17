@@ -34,7 +34,7 @@ wget -O ~/.local/share/duckpx/Cargo.toml https://raw.githubusercontent.com/Chang
 wget -O ~/.local/share/duckpx/src/config.rs https://raw.githubusercontent.com/Change-Goose-Open-Surce-Software/duckpx/main/config.rs
 wget -O ~/.local/share/duckpx/src/dpi.rs https://raw.githubusercontent.com/Change-Goose-Open-Surce-Software/duckpx/main/dpi.rs
 wget -O ~/.config/duckpx/config.toml https://raw.githubusercontent.com/Change-Goose-Open-Surce-Software/duckpx/main/config.toml
-wget -O ~/share/applications/duckpx.desktop https://raw.githubusercontent.com/Change-Goose-Open-Surce-Software/duckpx/main/duckpx.desktop
+wget -O ~/.local/share/applications/duckpx.desktop https://raw.githubusercontent.com/Change-Goose-Open-Surce-Software/duckpx/main/duckpx.desktop
 wget -O ~/.local/share/duckpx/update.sh https://raw.githubusercontent.com/Change-Goose-Open-Surce-Software/duckpx/main/install.sh
 wget -O ~/.local/share/duckpx/icon.png https://raw.githubusercontent.com/Change-Goose-Open-Surce-Software/duckpx/main/icon.png
 wget -O ~/.local/share/duckpx/src/i18n.rs https://raw.githubusercontent.com/Change-Goose-Open-Surce-Software/duckpx/main/i18n.rs
