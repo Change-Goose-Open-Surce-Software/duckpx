@@ -23,21 +23,21 @@ sudo apt install cargo -y
 sudo apt install rustc -y
 
 #Erstellen der Notwendigen Ordner
-sudo mkdir -p /usr/local/bin/
-sudo mkdir -p /usr/local/share/duckpx
-sudo mkdir -p /usr/local/share/duckpx/src
+sudo mkdir -p ~/local/bin/
+sudo mkdir -p ~/local/share/duckpx
+sudo mkdir -p ~/local/share/duckpx/src
 mkdir -p ~/.config/duckpx
 
 #holen der Datein von Github
-wget -O /usr/local/share/duckpx/src/main.rs https://raw.githubusercontent.com/Change-Goose-Open-Surce-Software/duckpx/main/main.rs
-wget -O /usr/local/share/duckpx/Cargo.toml https://raw.githubusercontent.com/Change-Goose-Open-Surce-Software/duckpx/main/Cargo.toml
-wget -O /usr/local/share/duckpx/src/config.rs https://raw.githubusercontent.com/Change-Goose-Open-Surce-Software/duckpx/main/config.rs
-wget -O /usr/local/share/duckpx/src/dpi.rs https://raw.githubusercontent.com/Change-Goose-Open-Surce-Software/duckpx/main/dpi.rs
+wget -O ~/local/share/duckpx/src/main.rs https://raw.githubusercontent.com/Change-Goose-Open-Surce-Software/duckpx/main/main.rs
+wget -O ~/local/share/duckpx/Cargo.toml https://raw.githubusercontent.com/Change-Goose-Open-Surce-Software/duckpx/main/Cargo.toml
+wget -O ~/local/share/duckpx/src/config.rs https://raw.githubusercontent.com/Change-Goose-Open-Surce-Software/duckpx/main/config.rs
+wget -O ~/local/share/duckpx/src/dpi.rs https://raw.githubusercontent.com/Change-Goose-Open-Surce-Software/duckpx/main/dpi.rs
 wget -O ~/.config/duckpx/config.toml https://raw.githubusercontent.com/Change-Goose-Open-Surce-Software/duckpx/main/config.toml
-wget -O /usr/share/applications/duckpx.desktop https://raw.githubusercontent.com/Change-Goose-Open-Surce-Software/duckpx/main/duckpx.desktop
-wget -O /usr/local/share/duckpx/update.sh https://raw.githubusercontent.com/Change-Goose-Open-Surce-Software/duckpx/main/install.sh
-wget -O /usr/local/share/duckpx/icon.png https://raw.githubusercontent.com/Change-Goose-Open-Surce-Software/duckpx/main/icon.png
-wget -O /usr/local/share/duckpx/src/translations.rs https://raw.githubusercontent.com/Change-Goose-Open-Surce-Software/duckpx/main/translations.rs
+wget -O ~/share/applications/duckpx.desktop https://raw.githubusercontent.com/Change-Goose-Open-Surce-Software/duckpx/main/duckpx.desktop
+wget -O ~/local/share/duckpx/update.sh https://raw.githubusercontent.com/Change-Goose-Open-Surce-Software/duckpx/main/install.sh
+wget -O ~/local/share/duckpx/icon.png https://raw.githubusercontent.com/Change-Goose-Open-Surce-Software/duckpx/main/icon.png
+wget -O ~/local/share/duckpx/src/i18n.rs https://raw.githubusercontent.com/Change-Goose-Open-Surce-Software/duckpx/main/i18n.rs
 
 #Funktionalitätder .desktop datei sicherstellen
 sudo update-desktop-database
@@ -45,14 +45,14 @@ sudo update-desktop-database
 #Datein Komprimieren
 # Rust-Projekt bauen
 echo "🔧 Baue DuckPx mit Cargo..."
-cd /usr/local/share/duckpx || { echo "❌ Verzeichnis nicht gefunden!"; exit 1; }
+cd ~/local/share/duckpx || { echo "❌ Verzeichnis nicht gefunden!"; exit 1; }
 cargo clean  # Sauberer Build (löscht alte Artefakte)
 cargo build --release || { echo "❌ Build fehlgeschlagen! Prüfe Cargo.toml."; exit 1; }
-sudo cp target/release/duckpx /usr/local/bin/ || { echo "❌ Kopieren fehlgeschlagen!"; exit 1; }
+sudo cp target/release/duckpx ~/local/bin/ || { echo "❌ Kopieren fehlgeschlagen!"; exit 1; }
 
 #Scripte Ausfühbar machen
-sudo chmod +x /usr/local/share/duckpx/update.sh
-sudo chmod +x /usr/local/bin/duckpx
+sudo chmod +x ~/local/share/duckpx/update.sh
+sudo chmod +x ~/local/bin/duckpx
 
 #Aufräumen
 rm -f ./install.sh*
