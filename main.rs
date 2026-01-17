@@ -142,13 +142,17 @@ fn build_ui(app: &Application) {
     update_button.connect_clicked(move |button| {
         button.set_label("Update...");
         
+        let home = dirs::home_dir().unwrap();
+        let update_script = home.join(".local/share/duckpx/update.sh");
+        let update_cmd = format!("bash -c 'bash {}; read -p \"Press Enter...\"'", update_script.display());
+        
         let terminals = vec!["gnome-terminal", "konsole", "xfce4-terminal", "xterm", "terminator"];
         let mut success = false;
         
         for terminal in terminals {
             let result = Command::new(terminal)
                 .arg("-e")
-                .arg("bash -c 'sudo /usr/local/share/duckpx/update.sh; read -p \"Press Enter...\"'")
+                .arg(&update_cmd)
                 .spawn();
             
             if result.is_ok() {
