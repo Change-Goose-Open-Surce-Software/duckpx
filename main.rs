@@ -173,7 +173,9 @@ fn build_ui(app: &Application) {
     });
 
     version_button.connect_clicked(move |_| {
-        webbrowser::open("file:///usr/local/share/duckpx/version.html").unwrap();
+        let home = dirs::home_dir().unwrap();
+        let version_file = home.join(".local/share/duckpx/version.html");
+        webbrowser::open(&format!("file://{}", version_file.display())).unwrap();
     });
 
     manual_button.connect_clicked({
@@ -338,7 +340,7 @@ fn show_settings_window(parent: &ApplicationWindow, config: &Rc<RefCell<config::
                 new_config.colors.square = square_hex.to_string();
             }
 
-            let config_dir = dirs::config_dir().unwrap().join("duckpx");
+            let config_dir = dirs::home_dir().unwrap().join(".local/share/duckpx");
             let config_path = config_dir.join("config.toml");
             let toml_string = toml::to_string(&new_config).unwrap();
             std::fs::write(config_path, toml_string).unwrap();
