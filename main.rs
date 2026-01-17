@@ -1,5 +1,5 @@
 use gtk::prelude::*;
-use gtk::{Application, ApplicationWindow, Button, Entry, ComboBoxText, Label, DrawingArea, Box as GtkBox, Orientation, ScrolledWindow};
+use gtk::{Application, ApplicationWindow, Button, Entry, ComboBoxText, Label, DrawingArea, Box as GtkBox, Orientation, ScrolledWindow, TextView};
 use webbrowser;
 use std::process::Command;
 use gtk::gdk::RGBA;
@@ -8,7 +8,7 @@ use std::cell::RefCell;
 
 mod config;
 mod dpi;
-mod translations;
+mod i18n;
 
 fn main() {
     let app = Application::builder()
@@ -24,246 +24,232 @@ fn main() {
 
 fn build_ui(app: &Application) {
     let config = Rc::new(RefCell::new(config::Config::load()));
-    let translations = Rc::new(translations::Translations::new());
-
-    let current_lang = config.borrow().language.current.clone();
+    let i18n = Rc::new(i18n::I18n::new());
+    
+    let lang = config.borrow().language.clone();
     let toolbar_position = config.borrow().ui.toolbar_position.clone();
     let square_color = config.borrow().colors.square.clone();
 
     let window = ApplicationWindow::builder()
         .application(app)
-        .title(&translations.get(&current_lang, "app_title"))
-        .default_width(500)
+        .title(&i18n.t(&lang, "app_title"))
+        .default_width(600)
         .default_height(600)
         .build();
 
-    // Layout basierend auf Toolbar-Position
-    let (main_box, toolbar_box, content_box) = match toolbar_position.as_str() {
-        "left" | "right" => {
-            let main = GtkBox::new(Orientation::Horizontal, 5);
-            let toolbar = GtkBox::new(Orientation::Vertical, 5);
-            let content = GtkBox::new(Orientation::Vertical, 5);
-            (main, toolbar, content)
-        },
-        _ => {
-            let main = GtkBox::new(Orientation::Vertical, 5);
-            let toolbar = GtkBox::new(Orientation::Horizontal, 5);
-            let content = GtkBox::new(Orientation::Vertical, 5);
-            (main, toolbar, content)
-        }
+    let main_box = match toolbar_position.as_str() {
+        "left" | "right" => GtkBox::new(Orientation::Horizontal, 5),
+        _ => GtkBox::new(Orientation::Vertical, 5),
+    };
+    main_box.set_margin_start(10);
+    main_box.set_margin_end(10);
+    main_box.set_margin_top(10);
+    main_box.set_margin_bottom(10);
+
+    let toolbar = match toolbar_position.as_str() {
+        "left" | "right" => GtkBox::new(Orientation::Vertical, 5),
+        _ => GtkBox::new(Orientation::Horizontal, 5),
     };
 
-    // Buttons erstellen
-    let update_button = Button::with_label(&translations.get(&current_lang, "update"));
-    let github_button = Button::with_label(&translations.get(&current_lang, "github"));
-    let settings_button = Button::with_label(&translations.get(&current_lang, "settings"));
-    let version_button = Button::with_label(&translations.get(&current_lang, "version"));
-    let manual_button = Button::with_label(&translations.get(&current_lang, "manual"));
-    let restart_button = Button::with_label(&translations.get(&current_lang, "restart"));
+    let update_button = Button::with_label(&i18n.t(&lang, "update"));
+    let github_button = Button::with_label(&i18n.t(&lang, "github"));
+    let settings_button = Button::with_label(&i18n.t(&lang, "settings"));
+    let version_button = Button::with_label(&i18n.t(&lang, "version"));
+    let manual_button = Button::with_label(&i18n.t(&lang, "manual"));
+    let restart_button = Button::with_label(&i18n.t(&lang, "restart"));
 
-    // Unit-Dropdown
-    let unit_combo = ComboBoxText::new();
-    unit_combo.append_text(&translations.get(&current_lang, "pixel"));
-    unit_combo.append_text(&translations.get(&current_lang, "millimeter"));
-    unit_combo.append_text(&translations.get(&current_lang, "inch"));
-    unit_combo.set_active(Some(0));
+    let content_box = GtkBox::new(Orientation::Vertical, 10);
 
-    // Input
     let input_entry = Entry::builder()
-        .placeholder_text(&translations.get(&current_lang, "input_placeholder"))
+        .placeholder_text(&i18n.t(&lang, "input_placeholder"))
         .build();
 
-    // Calculate Button
-    let calculate_button = Button::with_label(&translations.get(&current_lang, "calculate"));
+    let unit_combo = ComboBoxText::new();
+    unit_combo.append_text(&i18n.t(&lang, "pixel"));
+    unit_combo.append_text(&i18n.t(&lang, "millimeter"));
+    unit_combo.append_text(&i18n.t(&lang, "inch"));
+    unit_combo.set_active(Some(0));
 
-    // Result Label - GRÖSSER
-    let result_label = Label::new(Some(&translations.get(&current_lang, "result_default")));
-    result_label.set_markup(&format!("<span size='x-large'>{}</span>",
-        translations.get(&current_lang, "result_default")));
+    let calculate_button = Button::with_label(&i18n.t(&lang, "calculate"));
 
-    // Drawing Area
+    let result_label = Label::new(Some(&i18n.t(&lang, "result_placeholder")));
+    result_label.set_markup(&format!("<span size='x-large'>{}</span>", &i18n.t(&lang, "result_placeholder")));
+
     let drawing_area = DrawingArea::new();
     drawing_area.set_size_request(300, 300);
 
-    // Calculate Logic
-    let calculate_fn = {
+    let perform_calculation = {
         let input_entry = input_entry.clone();
         let unit_combo = unit_combo.clone();
         let result_label = result_label.clone();
         let drawing_area = drawing_area.clone();
         let square_color = square_color.clone();
+        let i18n = i18n.clone();
+        let lang = lang.clone();
 
         Rc::new(move || {
             let input = input_entry.text().parse::<f64>().unwrap_or(0.0);
-            let binding = unit_combo.active_text().unwrap_or_else(|| "Pixel (px)".into());
+            if input <= 0.0 {
+                return;
+            }
+
+            let binding = unit_combo.active_text().unwrap();
             let unit = binding.as_str();
 
-            let (px, mm, inch) = if unit.contains("px") || unit.contains("像素") || unit.contains("Пиксель") {
-                (input, dpi::px_to_mm(input), dpi::px_to_inch(input))
-            } else if unit.contains("mm") || unit.contains("毫米") || unit.contains("Миллиметр") {
-                (dpi::mm_to_px(input), input, dpi::mm_to_inch(input))
-            } else {
-                (dpi::inch_to_px(input), dpi::inch_to_mm(input), input)
+            let (px, mm, inch) = match unit {
+                s if s == i18n.t(&lang, "pixel") => (input, dpi::px_to_mm(input), dpi::px_to_inch(input)),
+                s if s == i18n.t(&lang, "millimeter") => (dpi::mm_to_px(input), input, dpi::mm_to_inch(input)),
+                s if s == i18n.t(&lang, "inch") => (dpi::inch_to_px(input), dpi::inch_to_mm(input), input),
+                _ => (0.0, 0.0, 0.0),
             };
 
-            // GRÖSSERE ANZEIGE
             result_label.set_markup(&format!(
                 "<span size='xx-large' weight='bold'>{:.0}px = {:.2}mm = {:.2}in</span>",
                 px, mm, inch
             ));
 
-            // Drawing
             let square_color_for_draw = square_color.clone();
             drawing_area.connect_draw(move |_, cr| {
-                if let Ok(square_rgba) = RGBA::parse(&square_color_for_draw) {
-                    cr.set_source_rgba(
-                        square_rgba.red() as f64,
-                        square_rgba.green() as f64,
-                        square_rgba.blue() as f64,
-                        1.0,
-                    );
-                    let size = px.min(280.0);
-                    cr.rectangle(10.0, 10.0, size, size);
-                    let _ = cr.fill();
-                }
+                let square_rgba = RGBA::parse(&square_color_for_draw).unwrap();
+                cr.set_source_rgba(
+                    square_rgba.red() as f64,
+                    square_rgba.green() as f64,
+                    square_rgba.blue() as f64,
+                    1.0,
+                );
+                cr.rectangle(10.0, 10.0, px.min(280.0), px.min(280.0));
+                cr.fill().unwrap();
                 Inhibit(false)
             });
             drawing_area.queue_draw();
         })
     };
 
-    // Calculate Button Click
     calculate_button.connect_clicked({
-        let calculate_fn = calculate_fn.clone();
+        let perform_calculation = perform_calculation.clone();
         move |_| {
-            calculate_fn();
+            perform_calculation();
         }
     });
 
-    // Enter-Taste für Berechnung
     input_entry.connect_activate({
-        let calculate_fn = calculate_fn.clone();
+        let perform_calculation = perform_calculation.clone();
         move |_| {
-            calculate_fn();
+            perform_calculation();
         }
     });
 
-    // Update Button - öffnet Terminal
-    update_button.connect_clicked(move |_| {
-        // Versuche verschiedene Terminal-Emulatoren
+    update_button.connect_clicked(move |button| {
+        button.set_label("Update...");
+        
         let terminals = vec!["gnome-terminal", "konsole", "xfce4-terminal", "xterm", "terminator"];
-
+        let mut success = false;
+        
         for terminal in terminals {
             let result = Command::new(terminal)
-                .arg("--")
-                .arg("bash")
-                .arg("-c")
-                .arg("sudo /usr/local/share/duckpx/update.sh; read -p 'Drücke Enter zum Beenden...'")
+                .arg("-e")
+                .arg("bash -c 'sudo /usr/local/share/duckpx/update.sh; read -p \"Press Enter...\"'")
                 .spawn();
-
+            
             if result.is_ok() {
+                success = true;
                 break;
             }
         }
+        
+        if success {
+            button.set_label("Update OK");
+        } else {
+            button.set_label("Update Error");
+        }
     });
 
-    // GitHub Button
     github_button.connect_clicked(move |_| {
-        let _ = webbrowser::open("https://github.com/Change-Goose-Open-Surce-Software/duckpx");
+        webbrowser::open("https://github.com/Change-Goose-Open-Surce-Software/duckpx").unwrap();
     });
 
-    // Version Button
     version_button.connect_clicked(move |_| {
-        let _ = webbrowser::open("file:///usr/local/share/duckpx/version.html");
+        webbrowser::open("file:///usr/local/share/duckpx/version.html").unwrap();
     });
 
-    // Manual Button
     manual_button.connect_clicked({
         let window = window.clone();
         let config = config.clone();
-        let translations = translations.clone();
+        let i18n = i18n.clone();
 
         move |_| {
-            show_manual_window(&window, &config, &translations);
+            show_manual_window(&window, &config, &i18n);
         }
     });
 
-    // Restart Button
     restart_button.connect_clicked({
         let window = window.clone();
+        
         move |_| {
             window.close();
-            let app = Application::builder()
-                .application_id("org.changegoose.duckpx")
-                .build();
-            app.connect_activate(|app| {
-                build_ui(app);
-            });
-            app.run();
+            std::process::Command::new(std::env::current_exe().unwrap())
+                .spawn()
+                .unwrap();
+            std::process::exit(0);
         }
     });
 
-    // Settings Button
     settings_button.connect_clicked({
         let window = window.clone();
         let config = config.clone();
-        let translations = translations.clone();
+        let i18n = i18n.clone();
 
         move |_| {
-            show_settings_window(&window, &config, &translations);
+            show_settings_window(&window, &config, &i18n);
         }
     });
 
-    // Toolbar zusammenbauen
-    toolbar_box.pack_start(&update_button, false, false, 0);
-    toolbar_box.pack_start(&github_button, false, false, 0);
-    toolbar_box.pack_start(&version_button, false, false, 0);
-    toolbar_box.pack_start(&manual_button, false, false, 0);
-    toolbar_box.pack_start(&settings_button, false, false, 0);
-    toolbar_box.pack_start(&restart_button, false, false, 0);
+    toolbar.pack_start(&update_button, false, false, 0);
+    toolbar.pack_start(&github_button, false, false, 0);
+    toolbar.pack_start(&version_button, false, false, 0);
+    toolbar.pack_start(&manual_button, false, false, 0);
+    toolbar.pack_start(&settings_button, false, false, 0);
+    toolbar.pack_start(&restart_button, false, false, 0);
 
-    // Content zusammenbauen
     content_box.pack_start(&input_entry, false, false, 0);
     content_box.pack_start(&unit_combo, false, false, 0);
     content_box.pack_start(&calculate_button, false, false, 0);
     content_box.pack_start(&result_label, false, false, 10);
     content_box.pack_start(&drawing_area, true, true, 0);
 
-    // Layout nach Position
     match toolbar_position.as_str() {
         "top" => {
-            main_box.pack_start(&toolbar_box, false, false, 0);
+            main_box.pack_start(&toolbar, false, false, 0);
             main_box.pack_start(&content_box, true, true, 0);
         },
         "bottom" => {
             main_box.pack_start(&content_box, true, true, 0);
-            main_box.pack_end(&toolbar_box, false, false, 0);
+            main_box.pack_end(&toolbar, false, false, 0);
         },
         "left" => {
-            main_box.pack_start(&toolbar_box, false, false, 0);
+            main_box.pack_start(&toolbar, false, false, 0);
             main_box.pack_start(&content_box, true, true, 0);
         },
         "right" => {
             main_box.pack_start(&content_box, true, true, 0);
-            main_box.pack_end(&toolbar_box, false, false, 0);
+            main_box.pack_end(&toolbar, false, false, 0);
         },
-        _ => (),
+        _ => {
+            main_box.pack_start(&toolbar, false, false, 0);
+            main_box.pack_start(&content_box, true, true, 0);
+        }
     }
 
     window.add(&main_box);
     window.show_all();
 }
 
-fn show_settings_window(
-    parent: &ApplicationWindow,
-    config: &Rc<RefCell<config::Config>>,
-    translations: &Rc<translations::Translations>
-) {
+fn show_settings_window(parent: &ApplicationWindow, config: &Rc<RefCell<config::Config>>, i18n: &Rc<i18n::I18n>) {
     let current_config = config.borrow().clone();
-    let current_lang = current_config.language.current.clone();
-
+    let lang = current_config.language.clone();
+    
     let settings_window = ApplicationWindow::builder()
-        .title(&translations.get(&current_lang, "settings_title"))
+        .title(&i18n.t(&lang, "settings_title"))
         .transient_for(parent)
         .default_width(400)
         .default_height(450)
@@ -275,147 +261,111 @@ fn show_settings_window(
     vbox.set_margin_top(10);
     vbox.set_margin_bottom(10);
 
-    // Toolbar Position
-    let toolbar_label = Label::new(Some(&translations.get(&current_lang, "toolbar_position")));
-    toolbar_label.set_halign(gtk::Align::Start);
-    let toolbar_pos_combo = ComboBoxText::new();
-    toolbar_pos_combo.append_text(&translations.get(&current_lang, "top"));
-    toolbar_pos_combo.append_text(&translations.get(&current_lang, "bottom"));
-    toolbar_pos_combo.append_text(&translations.get(&current_lang, "left"));
-    toolbar_pos_combo.append_text(&translations.get(&current_lang, "right"));
-    toolbar_pos_combo.set_active(match current_config.ui.toolbar_position.as_str() {
-        "top" => Some(0),
-        "bottom" => Some(1),
-        "left" => Some(2),
-        "right" => Some(3),
-        _ => Some(0),
-    });
-
-    // Manual Position
-    let manual_label = Label::new(Some(&translations.get(&current_lang, "manual_position")));
-    manual_label.set_halign(gtk::Align::Start);
-    let manual_pos_combo = ComboBoxText::new();
-    manual_pos_combo.append_text(&translations.get(&current_lang, "top"));
-    manual_pos_combo.append_text(&translations.get(&current_lang, "bottom"));
-    manual_pos_combo.append_text(&translations.get(&current_lang, "left"));
-    manual_pos_combo.append_text(&translations.get(&current_lang, "right"));
-    manual_pos_combo.set_active(match current_config.ui.manual_sidebar_position.as_str() {
-        "top" => Some(0),
-        "bottom" => Some(1),
-        "left" => Some(2),
-        "right" => Some(3),
-        _ => Some(2),
-    });
-
-    // Square Color
-    let square_color_label = Label::new(Some(&translations.get(&current_lang, "square_color")));
-    square_color_label.set_halign(gtk::Align::Start);
-    let square_color_combo = ComboBoxText::new();
-    square_color_combo.append(Some("#FFA500"), "Orange");
-    square_color_combo.append(Some("#FF0000"), "Rot / Red / Rouge / Красный / 红色");
-    square_color_combo.append(Some("#00FF00"), "Grün / Green / Vert / Зеленый / 绿色");
-    square_color_combo.append(Some("#0000FF"), "Blau / Blue / Bleu / Синий / 蓝色");
-    square_color_combo.append(Some("#FFFF00"), "Gelb / Yellow / Jaune / Желтый / 黄色");
-    square_color_combo.append(Some("#FF00FF"), "Magenta");
-    square_color_combo.append(Some("#00FFFF"), "Cyan");
-    square_color_combo.append(Some("#800080"), "Lila / Purple / Violet / Фиолетовый / 紫色");
-    square_color_combo.append(Some("#FFC0CB"), "Rosa / Pink / Rose / Розовый / 粉色");
-    square_color_combo.append(Some("#A52A2A"), "Braun / Brown / Brun / Коричневый / 棕色");
-    square_color_combo.append(Some("#000000"), "Schwarz / Black / Noir / Черный / 黑色");
-    square_color_combo.append(Some("#808080"), "Grau / Gray / Gris / Серый / 灰色");
-    square_color_combo.set_active_id(Some(&current_config.colors.square));
-
-    // Language
-    let lang_label = Label::new(Some(&translations.get(&current_lang, "language")));
+    let lang_label = Label::new(Some(&i18n.t(&lang, "language")));
     lang_label.set_halign(gtk::Align::Start);
     let lang_combo = ComboBoxText::new();
     lang_combo.append(Some("de"), "Deutsch");
     lang_combo.append(Some("en"), "English");
-    lang_combo.append(Some("fr"), "Français");
-    lang_combo.append(Some("ru"), "Русский");
-    lang_combo.append(Some("zh"), "中文");
-    lang_combo.set_active_id(Some(&current_config.language.current));
+    lang_combo.append(Some("fr"), "Francais");
+    lang_combo.append(Some("ru"), "Russian");
+    lang_combo.append(Some("zh"), "Chinese");
+    lang_combo.set_active_id(Some(&current_config.language));
 
-    // Save Button
-    let save_button = Button::with_label(&translations.get(&current_lang, "save"));
+    let toolbar_label = Label::new(Some(&i18n.t(&lang, "toolbar_position")));
+    toolbar_label.set_halign(gtk::Align::Start);
+    let toolbar_pos_combo = ComboBoxText::new();
+    toolbar_pos_combo.append(Some("top"), &i18n.t(&lang, "top"));
+    toolbar_pos_combo.append(Some("bottom"), &i18n.t(&lang, "bottom"));
+    toolbar_pos_combo.append(Some("left"), &i18n.t(&lang, "left"));
+    toolbar_pos_combo.append(Some("right"), &i18n.t(&lang, "right"));
+    toolbar_pos_combo.set_active_id(Some(&current_config.ui.toolbar_position));
+
+    let manual_sidebar_label = Label::new(Some(&i18n.t(&lang, "manual_sidebar_position")));
+    manual_sidebar_label.set_halign(gtk::Align::Start);
+    let manual_sidebar_combo = ComboBoxText::new();
+    manual_sidebar_combo.append(Some("top"), &i18n.t(&lang, "top"));
+    manual_sidebar_combo.append(Some("bottom"), &i18n.t(&lang, "bottom"));
+    manual_sidebar_combo.append(Some("left"), &i18n.t(&lang, "left"));
+    manual_sidebar_combo.append(Some("right"), &i18n.t(&lang, "right"));
+    manual_sidebar_combo.set_active_id(Some(&current_config.ui.manual_sidebar_position));
+
+    let square_color_label = Label::new(Some(&i18n.t(&lang, "square_color")));
+    square_color_label.set_halign(gtk::Align::Start);
+    let square_color_combo = ComboBoxText::new();
+    square_color_combo.append(Some("#FFA500"), "Orange");
+    square_color_combo.append(Some("#FF0000"), "Red");
+    square_color_combo.append(Some("#00FF00"), "Green");
+    square_color_combo.append(Some("#0000FF"), "Blue");
+    square_color_combo.append(Some("#FFFF00"), "Yellow");
+    square_color_combo.append(Some("#FF00FF"), "Magenta");
+    square_color_combo.append(Some("#00FFFF"), "Cyan");
+    square_color_combo.append(Some("#800080"), "Purple");
+    square_color_combo.append(Some("#FFC0CB"), "Pink");
+    square_color_combo.append(Some("#A52A2A"), "Brown");
+    square_color_combo.append(Some("#000000"), "Black");
+    square_color_combo.append(Some("#808080"), "Gray");
+    square_color_combo.set_active_id(Some(&current_config.colors.square));
+
+    let save_button = Button::with_label(&i18n.t(&lang, "save"));
     save_button.connect_clicked({
         let settings_window = settings_window.clone();
         let config = config.clone();
-        let toolbar_pos_combo = toolbar_pos_combo.clone();
-        let manual_pos_combo = manual_pos_combo.clone();
-        let square_color_combo = square_color_combo.clone();
         let lang_combo = lang_combo.clone();
-        let parent = parent.clone();
+        let toolbar_pos_combo = toolbar_pos_combo.clone();
+        let manual_sidebar_combo = manual_sidebar_combo.clone();
+        let square_color_combo = square_color_combo.clone();
 
         move |_| {
             let mut new_config = config.borrow().clone();
-
-            new_config.ui.toolbar_position = match toolbar_pos_combo.active() {
-                Some(0) => "top".to_string(),
-                Some(1) => "bottom".to_string(),
-                Some(2) => "left".to_string(),
-                Some(3) => "right".to_string(),
-                _ => "top".to_string(),
-            };
-
-            new_config.ui.manual_sidebar_position = match manual_pos_combo.active() {
-                Some(0) => "top".to_string(),
-                Some(1) => "bottom".to_string(),
-                Some(2) => "left".to_string(),
-                Some(3) => "right".to_string(),
-                _ => "left".to_string(),
-            };
-
+            
+            if let Some(new_lang) = lang_combo.active_id() {
+                new_config.language = new_lang.to_string();
+            }
+            
+            if let Some(toolbar_pos) = toolbar_pos_combo.active_id() {
+                new_config.ui.toolbar_position = toolbar_pos.to_string();
+            }
+            
+            if let Some(manual_pos) = manual_sidebar_combo.active_id() {
+                new_config.ui.manual_sidebar_position = manual_pos.to_string();
+            }
+            
             if let Some(square_hex) = square_color_combo.active_id() {
                 new_config.colors.square = square_hex.to_string();
             }
 
-            if let Some(lang_code) = lang_combo.active_id() {
-                new_config.language.current = lang_code.to_string();
-            }
-
-            new_config.save();
+            let config_dir = dirs::config_dir().unwrap().join("duckpx");
+            let config_path = config_dir.join("config.toml");
+            let toml_string = toml::to_string(&new_config).unwrap();
+            std::fs::write(config_path, toml_string).unwrap();
+            
             *config.borrow_mut() = new_config;
 
             settings_window.close();
-            parent.close();
-
-            // Neustart
-            let app = Application::builder()
-                .application_id("org.changegoose.duckpx")
-                .build();
-            app.connect_activate(|app| {
-                build_ui(app);
-            });
-            app.run();
         }
     });
 
-    vbox.pack_start(&toolbar_label, false, false, 0);
-    vbox.pack_start(&toolbar_pos_combo, false, false, 0);
-    vbox.pack_start(&manual_label, false, false, 0);
-    vbox.pack_start(&manual_pos_combo, false, false, 0);
-    vbox.pack_start(&square_color_label, false, false, 0);
-    vbox.pack_start(&square_color_combo, false, false, 0);
     vbox.pack_start(&lang_label, false, false, 0);
     vbox.pack_start(&lang_combo, false, false, 0);
+    vbox.pack_start(&toolbar_label, false, false, 0);
+    vbox.pack_start(&toolbar_pos_combo, false, false, 0);
+    vbox.pack_start(&manual_sidebar_label, false, false, 0);
+    vbox.pack_start(&manual_sidebar_combo, false, false, 0);
+    vbox.pack_start(&square_color_label, false, false, 0);
+    vbox.pack_start(&square_color_combo, false, false, 0);
     vbox.pack_start(&save_button, false, false, 0);
 
     settings_window.add(&vbox);
     settings_window.show_all();
 }
 
-fn show_manual_window(
-    parent: &ApplicationWindow,
-    config: &Rc<RefCell<config::Config>>,
-    translations: &Rc<translations::Translations>
-) {
+fn show_manual_window(parent: &ApplicationWindow, config: &Rc<RefCell<config::Config>>, i18n: &Rc<i18n::I18n>) {
     let current_config = config.borrow().clone();
-    let current_lang = current_config.language.current.clone();
+    let lang = current_config.language.clone();
     let sidebar_pos = current_config.ui.manual_sidebar_position.clone();
-
+    
     let manual_window = ApplicationWindow::builder()
-        .title(&translations.get(&current_lang, "manual_title"))
+        .title(&i18n.t(&lang, "manual_title"))
         .transient_for(parent)
         .default_width(800)
         .default_height(600)
@@ -426,142 +376,160 @@ fn show_manual_window(
         _ => GtkBox::new(Orientation::Vertical, 0),
     };
 
-    let sidebar = GtkBox::new(Orientation::Vertical, 5);
+    let sidebar = match sidebar_pos.as_str() {
+        "left" | "right" => GtkBox::new(Orientation::Vertical, 5),
+        _ => GtkBox::new(Orientation::Horizontal, 5),
+    };
     sidebar.set_margin_start(5);
     sidebar.set_margin_end(5);
     sidebar.set_margin_top(5);
     sidebar.set_margin_bottom(5);
 
-    let overview_btn = Button::with_label(&translations.get(&current_lang, "manual_overview"));
-    let usage_btn = Button::with_label(&translations.get(&current_lang, "manual_usage"));
-    let settings_btn = Button::with_label(&translations.get(&current_lang, "manual_settings"));
-    let examples_btn = Button::with_label(&translations.get(&current_lang, "manual_examples"));
-    let troubleshooting_btn = Button::with_label(&translations.get(&current_lang, "manual_troubleshooting"));
+    let scrolled_window = ScrolledWindow::new(gtk::NONE_ADJUSTMENT, gtk::NONE_ADJUSTMENT);
+    let text_view = TextView::new();
+    text_view.set_editable(false);
+    text_view.set_wrap_mode(gtk::WrapMode::Word);
+    text_view.set_margin_start(10);
+    text_view.set_margin_end(10);
+    text_view.set_margin_top(10);
+    text_view.set_margin_bottom(10);
+    
+    let buffer = text_view.buffer().unwrap();
+    
+    let intro_button = Button::with_label(&i18n.t(&lang, "manual_intro"));
+    let basic_button = Button::with_label(&i18n.t(&lang, "manual_basic"));
+    let conversion_button = Button::with_label(&i18n.t(&lang, "manual_conversion"));
+    let settings_button = Button::with_label(&i18n.t(&lang, "manual_settings"));
+    let examples_button = Button::with_label(&i18n.t(&lang, "manual_examples"));
 
-    sidebar.pack_start(&overview_btn, false, false, 0);
-    sidebar.pack_start(&usage_btn, false, false, 0);
-    sidebar.pack_start(&settings_btn, false, false, 0);
-    sidebar.pack_start(&examples_btn, false, false, 0);
-    sidebar.pack_start(&troubleshooting_btn, false, false, 0);
-
-    let scroll = ScrolledWindow::new(None, None);
-    let content_label = Label::new(None);
-    content_label.set_line_wrap(true);
-    content_label.set_margin_start(20);
-    content_label.set_margin_end(20);
-    content_label.set_margin_top(20);
-    content_label.set_margin_bottom(20);
-    content_label.set_halign(gtk::Align::Start);
-    content_label.set_valign(gtk::Align::Start);
-
-    scroll.add(&content_label);
-
-    let get_manual_content = move |section: &str| -> String {
-        match current_lang.as_str() {
-            "de" => match section {
-                "overview" => "=== UEBERSICHT ===\n\nDuckPx ist ein Tool zur Umrechnung zwischen Pixeln, Millimetern und Inches.\n\nEs bietet eine visuelle Darstellung der eingegebenen Groesse und unterstuetzt mehrere Sprachen.".to_string(),
-                "usage" => "=== VERWENDUNG ===\n\n1. Geben Sie eine Zahl in das Eingabefeld ein\n2. Waehlen Sie die Einheit (Pixel, Millimeter oder Inch)\n3. Druecken Sie 'Berechnen' oder Enter\n4. Das Ergebnis wird angezeigt und ein Quadrat in der entsprechenden Groesse gezeichnet".to_string(),
-                "settings" => "=== EINSTELLUNGEN ===\n\n- Toolbar-Position: Oben, Unten, Links oder Rechts\n- Anleitungs-Position: Position dieser Anleitung\n- Quadratfarbe: Farbe des angezeigten Quadrats\n- Sprache: Deutsch, English, Francais, Russki, Zhongwen".to_string(),
-                "examples" => "=== BEISPIELE ===\n\n50 Pixel = 13.23 mm = 0.52 inch\n100 mm = 377.95 px = 3.94 inch\n2 inch = 190.08 px = 50.80 mm".to_string(),
-                "troubleshooting" => "=== FEHLERBEHEBUNG ===\n\nProblem: Das Programm startet nicht\nLoesung: Fuehren Sie 'duckpx' im Terminal aus\n\nProblem: Update funktioniert nicht\nLoesung: Fuehren Sie manuell aus:\nsudo /usr/local/share/duckpx/update.sh".to_string(),
-                _ => "".to_string(),
-            },
-            "fr" => match section {
-                "overview" => "=== APERCU ===\n\nDuckPx est un outil de conversion entre pixels, millimetres et pouces.\n\nIl offre une representation visuelle de la taille saisie et prend en charge plusieurs langues.".to_string(),
-                "usage" => "=== UTILISATION ===\n\n1. Entrez un nombre dans le champ de saisie\n2. Selectionnez l'unite (Pixel, Millimetre ou Pouce)\n3. Appuyez sur 'Calculer' ou Entree\n4. Le resultat s'affiche et un carre de la taille correspondante est dessine".to_string(),
-                "settings" => "=== PARAMETRES ===\n\n- Position de la barre: Haut, Bas, Gauche ou Droite\n- Position du manuel: Position de ce manuel\n- Couleur du carre: Couleur du carre affiche\n- Langue: Deutsch, English, Francais, Russki, Zhongwen".to_string(),
-                "examples" => "=== EXEMPLES ===\n\n50 Pixel = 13.23 mm = 0.52 pouce\n100 mm = 377.95 px = 3.94 pouces\n2 pouces = 190.08 px = 50.80 mm".to_string(),
-                "troubleshooting" => "=== DEPANNAGE ===\n\nProbleme: Le programme ne demarre pas\nSolution: Executez 'duckpx' dans le terminal\n\nProbleme: La mise a jour ne fonctionne pas\nSolution: Executez manuellement:\nsudo /usr/local/share/duckpx/update.sh".to_string(),
-                _ => "".to_string(),
-            },
-            "ru" => match section {
-                "overview" => "=== OBZOR ===\n\nDuckPx - eto instrument dlya preobrazovaniya mezhdu pikselyami, millimetrami i dyuymami.\n\nOn predostavlyaet vizualnoe predstavlenie vvedennogo razmera i podderzhivaet neskolko yazykov.".to_string(),
-                "usage" => "=== ISPOLZOVANIE ===\n\n1. Vvedite chislo v pole vvoda\n2. Vyberte edinitsu izmereniya (Piksel, Millimetr ili Dyuym)\n3. Nazhmite 'Vychislit' ili Enter\n4. Rezultat otobrazhaetsya, i risuetsya kvadrat sootvetstvuyushchego razmera".to_string(),
-                "settings" => "=== NASTROYKI ===\n\n- Pozitsiya paneli: Sverkhu, Snizu, Sleva ili Sprava\n- Pozitsiya rukovodstva: Pozitsiya etogo rukovodstva\n- Tsvet kvadrata: Tsvet otobrazhaemogo kvadrata\n- Yazyk: Deutsch, English, Francais, Russki, Zhongwen".to_string(),
-                "examples" => "=== PRIMERY ===\n\n50 Piksel = 13.23 mm = 0.52 dyuyma\n100 mm = 377.95 px = 3.94 dyuyma\n2 dyuyma = 190.08 px = 50.80 mm".to_string(),
-                "troubleshooting" => "=== USTRANENIE NEPOLADOK ===\n\nProblema: Programma ne zapuskaetsya\nReshenie: Vypolnite 'duckpx' v terminale\n\nProblema: Obnovlenie ne rabotaet\nReshenie: Vypolnite vruchnuyu:\nsudo /usr/local/share/duckpx/update.sh".to_string(),
-                _ => "".to_string(),
-            },
-            "zh" => match section {
-                "overview" => "=== GAISHU ===\n\nDuckPx shi yige zai xiangsu, haomi he yingcun zhijian zhuanhuan de gongju.\n\nTa tigong shuru daxiao de keshihua biaoshi, bing zhichi duo zhong yuyan.".to_string(),
-                "usage" => "=== SHIYONG FANGFA ===\n\n1. Zai shurukuang zhong shuru shuzi\n2. Xuanze danwei (xiangsu, haomi huo yingcun)\n3. An 'Jisuan' huo huiche\n4. Xianshi jieguo bing huizhi xiangying daxiao de zhengfangxing".to_string(),
-                "settings" => "=== SHEZHI ===\n\n- Gongjulan weizhi: Dingbu, Dibu, Zuoce huo Youce\n- Shouce weizhi: Ci shouce de weizhi\n- Fangxing yanse: Xianshi fangxing de yanse\n- Yuyan: Deutsch, English, Francais, Russki, Zhongwen".to_string(),
-                "examples" => "=== SHILI ===\n\n50 xiangsu = 13.23 haomi = 0.52 yingcun\n100 haomi = 377.95 xiangsu = 3.94 yingcun\n2 yingcun = 190.08 xiangsu = 50.80 haomi".to_string(),
-                "troubleshooting" => "=== GUZHANG PAICHU ===\n\nWenti: Chengxu wufa qidong\nJiejue fangan: Zai zhongduan zhong yunxing 'duckpx'\n\nWenti: Gengxin bu qizuoyong\nJiejue fangan: Shoudong zhixing:\nsudo /usr/local/share/duckpx/update.sh".to_string(),
-                _ => "".to_string(),
-            },
-            _ => match section {
-                "overview" => "=== OVERVIEW ===\n\nDuckPx is a tool for converting between pixels, millimeters and inches.\n\nIt provides a visual representation of the entered size and supports multiple languages.".to_string(),
-                "usage" => "=== USAGE ===\n\n1. Enter a number in the input field\n2. Select the unit (Pixel, Millimeter or Inch)\n3. Press 'Calculate' or Enter\n4. The result is displayed and a square of the corresponding size is drawn".to_string(),
-                "settings" => "=== SETTINGS ===\n\n- Toolbar Position: Top, Bottom, Left or Right\n- Manual Position: Position of this manual\n- Square Color: Color of the displayed square\n- Language: Deutsch, English, Francais, Russki, Zhongwen".to_string(),
-                "examples" => "=== EXAMPLES ===\n\n50 Pixel = 13.23 mm = 0.52 inch\n100 mm = 377.95 px = 3.94 inch\n2 inch = 190.08 px = 50.80 mm".to_string(),
-                "troubleshooting" => "=== TROUBLESHOOTING ===\n\nProblem: The program does not start\nSolution: Run 'duckpx' in the terminal\n\nProblem: Update does not work\nSolution: Run manually:\nsudo /usr/local/share/duckpx/update.sh".to_string(),
-                _ => "".to_string(),
-            }
-        }
-    };
-
-    content_label.set_text(&get_manual_content("overview"));
-
-    overview_btn.connect_clicked({
-        let content_label = content_label.clone();
-        let get_manual_content = get_manual_content.clone();
+    intro_button.connect_clicked({
+        let buffer = buffer.clone();
+        let lang = lang.clone();
         move |_| {
-            content_label.set_text(&get_manual_content("overview"));
+            buffer.set_text(&get_manual_intro(&lang));
         }
     });
 
-    usage_btn.connect_clicked({
-        let content_label = content_label.clone();
-        let get_manual_content = get_manual_content.clone();
+    basic_button.connect_clicked({
+        let buffer = buffer.clone();
+        let lang = lang.clone();
         move |_| {
-            content_label.set_text(&get_manual_content("usage"));
+            buffer.set_text(&get_manual_basic(&lang));
         }
     });
 
-    settings_btn.connect_clicked({
-        let content_label = content_label.clone();
-        let get_manual_content = get_manual_content.clone();
+    conversion_button.connect_clicked({
+        let buffer = buffer.clone();
+        let lang = lang.clone();
         move |_| {
-            content_label.set_text(&get_manual_content("settings"));
+            buffer.set_text(&get_manual_conversion(&lang));
         }
     });
 
-    examples_btn.connect_clicked({
-        let content_label = content_label.clone();
-        let get_manual_content = get_manual_content.clone();
+    settings_button.connect_clicked({
+        let buffer = buffer.clone();
+        let lang = lang.clone();
         move |_| {
-            content_label.set_text(&get_manual_content("examples"));
+            buffer.set_text(&get_manual_settings(&lang));
         }
     });
 
-    troubleshooting_btn.connect_clicked({
-        let content_label = content_label.clone();
+    examples_button.connect_clicked({
+        let buffer = buffer.clone();
+        let lang = lang.clone();
         move |_| {
-            content_label.set_text(&get_manual_content("troubleshooting"));
+            buffer.set_text(&get_manual_examples(&lang));
         }
     });
+
+    buffer.set_text(&get_manual_intro(&lang));
+
+    sidebar.pack_start(&intro_button, false, false, 0);
+    sidebar.pack_start(&basic_button, false, false, 0);
+    sidebar.pack_start(&conversion_button, false, false, 0);
+    sidebar.pack_start(&settings_button, false, false, 0);
+    sidebar.pack_start(&examples_button, false, false, 0);
+
+    scrolled_window.add(&text_view);
 
     match sidebar_pos.as_str() {
         "top" => {
             main_box.pack_start(&sidebar, false, false, 0);
-            main_box.pack_start(&scroll, true, true, 0);
+            main_box.pack_start(&scrolled_window, true, true, 0);
         },
         "bottom" => {
-            main_box.pack_start(&scroll, true, true, 0);
+            main_box.pack_start(&scrolled_window, true, true, 0);
             main_box.pack_end(&sidebar, false, false, 0);
         },
         "left" => {
             main_box.pack_start(&sidebar, false, false, 0);
-            main_box.pack_start(&scroll, true, true, 0);
+            main_box.pack_start(&scrolled_window, true, true, 0);
         },
         "right" => {
-            main_box.pack_start(&scroll, true, true, 0);
+            main_box.pack_start(&scrolled_window, true, true, 0);
             main_box.pack_end(&sidebar, false, false, 0);
         },
-        _ => (),
+        _ => {
+            main_box.pack_start(&sidebar, false, false, 0);
+            main_box.pack_start(&scrolled_window, true, true, 0);
+        }
     }
 
     manual_window.add(&main_box);
     manual_window.show_all();
+}
+
+fn get_manual_intro(lang: &str) -> String {
+    match lang {
+        "de" => "EINFUEHRUNG\n\nDuckPx ist ein Tool zur Umrechnung von Pixeln, Millimetern und Inches.\n\nEs zeigt die umgerechneten Werte visuell an und hilft bei der Arbeit mit verschiedenen Masseinheiten.\n\nDas Programm basiert auf 96 DPI Standard.".to_string(),
+        "en" => "INTRODUCTION\n\nDuckPx is a tool for converting pixels, millimeters, and inches.\n\nIt displays converted values visually and helps working with different units of measurement.\n\nThe program is based on the 96 DPI standard.".to_string(),
+        "fr" => "INTRODUCTION\n\nDuckPx est un outil de conversion de pixels, millimetres et pouces.\n\nIl affiche les valeurs converties visuellement et aide a travailler avec differentes unites de mesure.\n\nLe programme est base sur la norme 96 DPI.".to_string(),
+        "ru" => "VVEDENIE\n\nDuckPx - eto instrument dlya preobrazovaniya pikseley, millimetrov i dyuymov.\n\nOn vizualno otobrazhaet preobrazovannye znacheniya i pomogaet rabotat s razlichnymi edinitsami izmereniya.\n\nProgramma osnovana na standarte 96 DPI.".to_string(),
+        "zh" => "JIESHAO\n\nDuckPx shi yige yongyu zhuanhuan xiangshu, haomi he yingcun de gongju.\n\nTa yikeshi xianshi zhuanhuan hou de zhi, bing bangzhu shiyong butong de celiang danwei.\n\nChengxu jiyu 96 DPI biaozhun.".to_string(),
+        _ => "INTRODUCTION".to_string(),
+    }
+}
+
+fn get_manual_basic(lang: &str) -> String {
+    match lang {
+        "de" => "GRUNDLAGEN\n\n1. Geben Sie einen Wert in das Eingabefeld ein\n2. Waehlen Sie die Einheit (Pixel, Millimeter oder Inch)\n3. Druecken Sie 'Berechnen' oder Enter\n4. Das Ergebnis wird angezeigt und visualisiert\n\nDas Programm zeigt ein farbiges Quadrat in der berechneten Groesse an.".to_string(),
+        "en" => "BASICS\n\n1. Enter a value in the input field\n2. Select the unit (Pixel, Millimeter, or Inch)\n3. Press 'Calculate' or Enter\n4. The result will be displayed and visualized\n\nThe program shows a colored square in the calculated size.".to_string(),
+        "fr" => "NOTIONS DE BASE\n\n1. Entrez une valeur dans le champ de saisie\n2. Selectionnez l'unite (Pixel, Millimetre ou Pouce)\n3. Appuyez sur 'Calculer' ou Entree\n4. Le resultat sera affiche et visualise\n\nLe programme affiche un carre colore dans la taille calculee.".to_string(),
+        "ru" => "OSNOVY\n\n1. Vvedite znachenie v pole vvoda\n2. Vyberte edinitsu izmereniya (Piksel, Millimetr ili Dyuym)\n3. Nazhmite 'Vychislit' ili Enter\n4. Rezultat budet otobrazhen i vizualizirovan\n\nProgramma pokazyvaet tsvetnoj kvadrat v vychislennom razmere.".to_string(),
+        "zh" => "JICHU\n\n1. Zai shurudazhong shuru zhi\n2. Xuanze danwei (Xiangshu, Haomi huo Yingcun)\n3. An 'Jisuan' huo Enter\n4. Jieguo jiang xianshi bing keshihua\n\nChengxu xianshi jisuan daxiao de caise fangkuai.".to_string(),
+        _ => "BASICS".to_string(),
+    }
+}
+
+fn get_manual_conversion(lang: &str) -> String {
+    match lang {
+        "de" => "UMRECHNUNG\n\nUmrechnungsformeln (96 DPI):\n\n1 Pixel = 0.264583333 mm\n1 Millimeter = 3.7795275591 px\n1 Inch = 96 px\n1 Inch = 25.4 mm\n\nDas Programm rechnet automatisch zwischen allen Einheiten um.\n\nDie Berechnung basiert auf dem 96 DPI Standard, der auf den meisten Bildschirmen verwendet wird.".to_string(),
+        "en" => "CONVERSION\n\nConversion formulas (96 DPI):\n\n1 Pixel = 0.264583333 mm\n1 Millimeter = 3.7795275591 px\n1 Inch = 96 px\n1 Inch = 25.4 mm\n\nThe program automatically converts between all units.\n\nThe calculation is based on the 96 DPI standard used on most screens.".to_string(),
+        "fr" => "CONVERSION\n\nFormules de conversion (96 DPI):\n\n1 Pixel = 0.264583333 mm\n1 Millimetre = 3.7795275591 px\n1 Pouce = 96 px\n1 Pouce = 25.4 mm\n\nLe programme convertit automatiquement entre toutes les unites.\n\nLe calcul est base sur la norme 96 DPI utilisee sur la plupart des ecrans.".to_string(),
+        "ru" => "PREOBRAZOVANIE\n\nFormuly preobrazovaniya (96 DPI):\n\n1 Piksel = 0.264583333 mm\n1 Millimetr = 3.7795275591 px\n1 Dyuym = 96 px\n1 Dyuym = 25.4 mm\n\nProgramma avtomaticheski preobrazuet mezhdu vsemi edinitsami.\n\nVychislenie osnovano na standarte 96 DPI, ispolzuemom na bolshinstve ekranov.".to_string(),
+        "zh" => "ZHUANHUAN\n\nZhuanhuan gongshi (96 DPI):\n\n1 Xiangshu = 0.264583333 haomi\n1 Haomi = 3.7795275591 xiangshu\n1 Yingcun = 96 xiangshu\n1 Yingcun = 25.4 haomi\n\nChengxu zidong zai suoyou danwei zhijian zhuanhuan.\n\nJisuan jiyu daduoshu pingmu shang shiyong de 96 DPI biaozhun.".to_string(),
+        _ => "CONVERSION".to_string(),
+    }
+}
+
+fn get_manual_settings(lang: &str) -> String {
+    match lang {
+        "de" => "EINSTELLUNGEN\n\nAnpassbare Optionen:\n\n- Sprache (Deutsch, Englisch, Franzoesisch, Russisch, Chinesisch)\n- Toolbar-Position (Oben, Unten, Links, Rechts)\n- Anleitungs-Sidebar-Position (Oben, Unten, Links, Rechts)\n- Quadratfarbe (verschiedene Farben verfuegbar)\n\nAenderungen werden sofort gespeichert und beim naechsten Start geladen.".to_string(),
+        "en" => "SETTINGS\n\nCustomizable options:\n\n- Language (German, English, French, Russian, Chinese)\n- Toolbar Position (Top, Bottom, Left, Right)\n- Manual Sidebar Position (Top, Bottom, Left, Right)\n- Square Color (various colors available)\n\nChanges are saved immediately and loaded on next start.".to_string(),
+        "fr" => "PARAMETRES\n\nOptions personnalisables:\n\n- Langue (Allemand, Anglais, Francais, Russe, Chinois)\n- Position de la barre d'outils (Haut, Bas, Gauche, Droite)\n- Position de la barre laterale du manuel (Haut, Bas, Gauche, Droite)\n- Couleur du carre (plusieurs couleurs disponibles)\n\nLes modifications sont enregistrees immediatement et chargees au prochain demarrage.".to_string(),
+        "ru" => "NASTROYKI\n\nNastraivaemye parametry:\n\n- Yazyk (Nemetskiy, Angliyskiy, Frantsuzskiy, Russkiy, Kitayskiy)\n- Polozhenie paneli instrumentov (Sverkhu, Snizu, Sleva, Sprava)\n- Polozhenie bokovoy paneli rukovodstva (Sverkhu, Snizu, Sleva, Sprava)\n- Tsvet kvadrata (dostupny razlichnye tsveta)\n\nIzmenenia sohranyayutsya nemedlenno i zagruzhayutsya pri sleduyushchem zapuske.".to_string(),
+        "zh" => "SHEZHI\n\nKezidingyi xuanxiang:\n\n- Yuyan (Deyu, Yingyu, Fayu, Eyu, Zhongwen)\n- Gongjulan weizhi (Dingbu, Dibu, Zuoce, Youce)\n- Shouce cebianguang weizhi (Dingbu, Dibu, Zuoce, Youce)\n- Fangkuai yanse (tigong duozhong yanse)\n\nGengga hui lijiqubaocun bing zai xia ci qidong shi jiazai.".to_string(),
+        _ => "SETTINGS".to_string(),
+    }
+}
+
+fn get_manual_examples(lang: &str) -> String {
+    match lang {
+        "de" => "BEISPIELE\n\nBeispiel 1: Pixel zu Millimeter\n- Eingabe: 100 px\n- Ergebnis: 100px = 26.46mm = 1.04in\n\nBeispiel 2: Millimeter zu Pixel\n- Eingabe: 50 mm\n- Ergebnis: 189px = 50.00mm = 1.97in\n\nBeispiel 3: Inch zu allen Einheiten\n- Eingabe: 2 in\n- Ergebnis: 192px = 50.80mm = 2.00in\n\nTipp: Sie koennen Enter druecken statt auf Berechnen zu klicken!".to_string(),
+        "en" => "EXAMPLES\n\nExample 1: Pixels to Millimeters\n- Input: 100 px\n- Result: 100px = 26.46mm = 1.04in\n\nExample 2: Millimeters to Pixels\n- Input: 50 mm\n- Result: 189px = 50.00mm = 1.97in\n\nExample 3: Inches to all units\n- Input: 2 in\n- Result: 192px = 50.80mm = 2.00in\n\nTip: You can press Enter instead of clicking Calculate!".to_string(),
+        "fr" => "EXEMPLES\n\nExemple 1: Pixels vers Millimetres\n- Entree: 100 px\n- Resultat: 100px = 26.46mm = 1.04in\n\nExemple 2: Millimetres vers Pixels\n- Entree: 50 mm\n- Resultat: 189px = 50.00mm = 1.97in\n\nExemple 3: Pouces vers toutes les unites\n- Entree: 2 in\n- Resultat: 192px = 50.80mm = 2.00in\n\nAstuce: Vous pouvez appuyer sur Entree au lieu de cliquer sur Calculer!".to_string(),
+        "ru" => "PRIMERY\n\nPrimer 1: Pikseli v Millimetry\n- Vvod: 100 px\n- Rezultat: 100px = 26.46mm = 1.04in\n\nPrimer 2: Millimetry v Pikseli\n- Vvod: 50 mm\n- Rezultat: 189px = 50.00mm = 1.97in\n\nPrimer 3: Dyuymy vo vse edinitsy\n- Vvod: 2 in\n- Rezultat: 192px = 50.80mm = 2.00in\n\nSovet: Vy mozhete nazhat Enter vmesto togo chtoby nazhimat Vychislit!".to_string(),
+        "zh" => "SHILI\n\nShili 1: Xiangshu dao Haomi\n- Shuru: 100 px\n- Jieguo: 100px = 26.46mm = 1.04in\n\nShili 2: Haomi dao Xiangshu\n- Shuru: 50 mm\n- Jieguo: 189px = 50.00mm = 1.97in\n\nShili 3: Yingcun dao suoyou danwei\n- Shuru: 2 in\n- Jieguo: 192px = 50.80mm = 2.00in\n\nTishi: Nin keyi an Enter erbuhi dianji Jisuan!".to_string(),
+        _ => "EXAMPLES".to_string(),
+    }
 }
