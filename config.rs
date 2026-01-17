@@ -22,9 +22,9 @@ pub struct Config {
 
 impl Config {
     pub fn load() -> Self {
-        let config_dir = dirs::config_dir()
-            .expect("Konnte Konfigurationsverzeichnis nicht finden")
-            .join("duckpx");
+        let config_dir = dirs::home_dir()
+            .expect("Konnte Home-Verzeichnis nicht finden")
+            .join(".local/share/duckpx");
 
         let config_path = config_dir.join("config.toml");
 
