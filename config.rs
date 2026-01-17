@@ -2,18 +2,29 @@ use serde::{Deserialize, Serialize};
 use std::fs;
 use dirs;
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Colors {
     pub square: String,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct UI {
     pub toolbar_position: String,  // "top", "bottom", "left", "right"
     pub manual_sidebar_position: String,  // "top", "bottom", "left", "right"
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Colors {
+    pub square: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UI {
+    pub toolbar_position: String,  // "top", "bottom", "left", "right"
+    pub manual_sidebar_position: String,  // "top", "bottom", "left", "right"
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Config {
     pub colors: Colors,
     pub ui: UI,
