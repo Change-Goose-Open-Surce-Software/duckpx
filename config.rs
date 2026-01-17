@@ -2,27 +2,22 @@ use serde::{Deserialize, Serialize};
 use std::fs;
 use dirs;
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Colors {
     pub square: String,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct UI {
     pub toolbar_position: String,  // "top", "bottom", "left", "right"
-    pub manual_sidebar_position: String, // "top", "bottom", "left", "right"
+    pub manual_sidebar_position: String,  // "top", "bottom", "left", "right"
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct Language {
-    pub current: String,  // "de", "en", "fr", "ru", "zh"
-}
-
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Config {
     pub colors: Colors,
     pub ui: UI,
-    pub language: Language,
+    pub language: String,  // "de", "en", "fr", "ru", "zh"
 }
 
 impl Config {
@@ -40,8 +35,6 @@ impl Config {
 
         // Standardkonfiguration, falls keine existiert
         if !config_path.exists() {
-            let default_language = Self::detect_language();
-            
             let default_config = Config {
                 colors: Colors {
                     square: "#FFA500".to_string(),
@@ -50,9 +43,7 @@ impl Config {
                     toolbar_position: "top".to_string(),
                     manual_sidebar_position: "left".to_string(),
                 },
-                language: Language {
-                    current: default_language,
-                },
+                language: Self::detect_language(),
             };
             let toml_string = toml::to_string(&default_config).unwrap();
             fs::write(&config_path, toml_string).unwrap();
@@ -64,35 +55,24 @@ impl Config {
         toml::from_str(&content).unwrap()
     }
 
-    #[allow(dead_code)]
-    pub fn save(&self) {
-        let config_dir = dirs::config_dir().unwrap().join("duckpx");
-        let config_path = config_dir.join("config.toml");
-        let toml_string = toml::to_string(self).unwrap();
-        fs::write(config_path, toml_string).unwrap();
-    }
-
     fn detect_language() -> String {
         // Versuche Systemsprache zu erkennen
         if let Ok(lang) = std::env::var("LANG") {
             let lang_lower = lang.to_lowercase();
             if lang_lower.starts_with("de") {
                 return "de".to_string();
+            } else if lang_lower.starts_with("en") {
+                return "en".to_string();
             } else if lang_lower.starts_with("fr") {
                 return "fr".to_string();
             } else if lang_lower.starts_with("ru") {
                 return "ru".to_string();
-            } else if lang_lower.starts_with("zh") || lang_lower.starts_with("cn") {
+            } else if lang_lower.starts_with("zh") {
                 return "zh".to_string();
-            } else if lang_lower.starts_with("en") {
-                return "en".to_string();
             }
         }
-
-        // Fallback: versuche IP-Region zu ermitteln (vereinfacht)
-        // In einer echten Implementierung würde man hier einen API-Call machen
         
-        // Standard: Englisch
+        // Fallback auf Englisch
         "en".to_string()
     }
 }
