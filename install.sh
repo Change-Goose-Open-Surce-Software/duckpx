@@ -46,6 +46,7 @@ source ~/.bashrc
 source ~/.zshrc
 
 #Funktionalitätder .desktop datei sicherstellen
+chmod +x ~/.local/share/applications/duckpx.desktop
 sudo update-desktop-database
 update-desktop-database
 
