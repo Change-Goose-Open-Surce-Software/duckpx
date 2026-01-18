@@ -38,6 +38,7 @@ wget -O ~/.local/share/applications/duckpx.desktop https://raw.githubusercontent
 wget -O ~/.local/share/duckpx/update.sh https://raw.githubusercontent.com/Change-Goose-Open-Surce-Software/duckpx/main/install.sh
 wget -O ~/.local/share/duckpx/icon.png https://raw.githubusercontent.com/Change-Goose-Open-Surce-Software/duckpx/main/icon.png
 wget -O ~/.local/share/duckpx/src/i18n.rs https://raw.githubusercontent.com/Change-Goose-Open-Surce-Software/duckpx/main/i18n.rs
+wget -O ~/.local/share/duckpx/version.html https://raw.githubusercontent.com/Change-Goose-Open-Surce-Software/duckpx/main/version.html
 
 # ~/.local/bin/ überprüfen
 export PATH=$PATH:~/.local/bin/
