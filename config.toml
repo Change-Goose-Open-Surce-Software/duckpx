@@ -3,7 +3,7 @@ square = "#FFA500"
 
 [ui]
 toolbar_position = "top"
-manual_sidebar_position = "bottom"
+manual_sidebar_position = "top"
 
 [language]
-current = "de"
+current = "en"
