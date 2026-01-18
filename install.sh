@@ -15,12 +15,12 @@ echo cargo
 echo rustc
 
 #instalation der benötigten Programme
-sudo apt install wget -y
-sudo apt install git -y
-sudo apt install build-essential -y
-sudo apt install libgtk-3-dev -y
-sudo apt install cargo -y
-sudo apt install rustc -y
+sudo apt install wget -y  || { echo "❌ Installation von wget fehlgeschlagen!"; exit 1; }
+sudo apt install git -y  || { echo "❌ Installation von git fehlgeschlagen!"; exit 1; }
+sudo apt install build-essential -y  || { echo "❌ Installation von build-essential fehlgeschlagen!"; exit 1; }
+sudo apt install libgtk-3-dev -y  || { echo "❌ Installation von libgtk-3-dev fehlgeschlagen!"; exit 1; }
+sudo apt install cargo -y  || { echo "❌ Installation von cargo fehlgeschlagen!"; exit 1; }
+sudo apt install rustc -y  || { echo "❌ Installation von rustc fehlgeschlagen!"; exit 1; }
 
 #Erstellen der Notwendigen Ordner
 mkdir -p ~/.local/bin/
@@ -38,6 +38,11 @@ wget -O ~/.local/share/applications/duckpx.desktop https://raw.githubusercontent
 wget -O ~/.local/share/duckpx/update.sh https://raw.githubusercontent.com/Change-Goose-Open-Surce-Software/duckpx/main/install.sh
 wget -O ~/.local/share/duckpx/icon.png https://raw.githubusercontent.com/Change-Goose-Open-Surce-Software/duckpx/main/icon.png
 wget -O ~/.local/share/duckpx/src/i18n.rs https://raw.githubusercontent.com/Change-Goose-Open-Surce-Software/duckpx/main/i18n.rs
+
+# ~/.local/bin/ überprüfen
+export PATH=$PATH:~/.local/bin/
+source ~/.bashrc
+source ~/.zshrc
 
 #Funktionalitätder .desktop datei sicherstellen
 sudo update-desktop-database
