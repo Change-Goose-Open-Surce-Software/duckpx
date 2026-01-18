@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #Intro des Scriptes
-sudo apt update
+apt update
 echo Hi!
 echo Nice that you use a programm from Change Goose
 
@@ -15,12 +15,12 @@ echo cargo
 echo rustc
 
 #instalation der benötigten Programme
-sudo apt install wget -y  || { echo "❌ Installation von wget fehlgeschlagen!"; exit 1; }
-sudo apt install git -y  || { echo "❌ Installation von git fehlgeschlagen!"; exit 1; }
-sudo apt install build-essential -y  || { echo "❌ Installation von build-essential fehlgeschlagen!"; exit 1; }
-sudo apt install libgtk-3-dev -y  || { echo "❌ Installation von libgtk-3-dev fehlgeschlagen!"; exit 1; }
-sudo apt install cargo -y  || { echo "❌ Installation von cargo fehlgeschlagen!"; exit 1; }
-sudo apt install rustc -y  || { echo "❌ Installation von rustc fehlgeschlagen!"; exit 1; }
+apt install wget -y  || { echo "❌ Installation von wget fehlgeschlagen!"; exit 1; }
+apt install git -y  || { echo "❌ Installation von git fehlgeschlagen!"; exit 1; }
+apt install build-essential -y  || { echo "❌ Installation von build-essential fehlgeschlagen!"; exit 1; }
+apt install libgtk-3-dev -y  || { echo "❌ Installation von libgtk-3-dev fehlgeschlagen!"; exit 1; }
+apt install cargo -y  || { echo "❌ Installation von cargo fehlgeschlagen!"; exit 1; }
+apt install rustc -y  || { echo "❌ Installation von rustc fehlgeschlagen!"; exit 1; }
 
 #Erstellen der Notwendigen Ordner
 mkdir -p ~/.local/bin/
@@ -47,7 +47,7 @@ source ~/.zshrc
 
 #Funktionalitätder .desktop datei sicherstellen
 chmod +x ~/.local/share/applications/duckpx.desktop
-sudo update-desktop-database
+update-desktop-database
 update-desktop-database
 
 #Datein Komprimieren
@@ -59,8 +59,8 @@ cargo build --release || { echo "❌ Build fehlgeschlagen! Prüfe Cargo.toml."; 
 cp target/release/duckpx ~/.local/bin/ || { echo "❌ Kopieren fehlgeschlagen!"; exit 1; }
 
 #Scripte Ausfühbar machen
-sudo chmod +x ~/.local/share/duckpx/update.sh
-sudo chmod +x ~/.local/bin/duckpx
+chmod +x ~/.local/share/duckpx/update.sh
+chmod +x ~/.local/bin/duckpx
 
 #Aufräumen
 rm -f ./install.sh*
